@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "@/lib/theme";
+import Image from "next/image";
 
 export function Header() {
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -22,12 +23,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 h-16 bg-card border-b border-border flex items-center justify-between px-6">
       {/* Logo */}
-      <div className="flex items-center gap-2">
-        <span className="text-2xl font-bold tracking-tight">
-          <span className="text-primary">LINKED</span>
-          <span className="text-foreground">IOT</span>
-        </span>
-      </div>
+      <Image src="/logo.svg" alt="Logo" width={169} height={24} />
 
       {/* Right Actions */}
       <div className="flex items-center gap-3">

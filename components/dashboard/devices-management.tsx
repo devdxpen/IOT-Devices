@@ -70,14 +70,14 @@ export function DevicesManagement({ devices }: DevicesManagementProps) {
               <ToggleGroupItem
                 value="list"
                 aria-label="List view"
-                className="p-2 rounded-md data-[state=on]:bg-neutral-100 hover:bg-neutral-50"
+                className="p-2 rounded-md data-[state=on]:bg-primary-500 data-[state=on]:text-white hover:bg-neutral-50"
               >
                 <IoListOutline className="w-4 h-4 text-neutral-600" />
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="grid"
                 aria-label="Grid view"
-                className="p-2 rounded-md data-[state=on]:bg-blue-500 data-[state=on]:text-white hover:bg-neutral-50"
+                className="p-2 rounded-md data-[state=on]:bg-primary-500 data-[state=on]:text-white hover:bg-neutral-50"
               >
                 <IoGridOutline className="w-4 h-4" />
               </ToggleGroupItem>
