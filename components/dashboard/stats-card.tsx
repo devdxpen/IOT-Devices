@@ -17,7 +17,7 @@ export function StatsCard({
   iconColor = "text-neutral-600",
 }: StatsCardProps) {
   return (
-    <Card className="bg-white border border-neutral-200 shadow-sm rounded-xl">
+    <Card className="bg-white border border-neutral-200 shadow-lg rounded-md">
       <CardContent className="p-6">
         <div className="flex items-center gap-4">
           {/* Icon Container - 48x48px */}

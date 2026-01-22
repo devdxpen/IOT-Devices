@@ -112,13 +112,11 @@ export function DevicesManagement({ devices }: DevicesManagementProps) {
         </div>
       </div>
       <div className="p-5">
-        <ScrollArea className="flex-1">
-          <div className="grid grid-cols-4 gap-5">
-            {devices.map((device) => (
-              <DeviceCard key={device.id} device={device} />
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="grid grid-cols-4 gap-5">
+          {devices.map((device) => (
+            <DeviceCard key={device.id} device={device} />
+          ))}
+        </div>
       </div>
     </div>
   );
