@@ -20,7 +20,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function DeviceCard({ device }: DeviceCardProps) {
   return (
-    <Card className="overflow-hidden border border-neutral-200 rounded-md shadow-xl hover:shadow-2xl transition-all hover:scale-105 duration-300 cursor-pointer">
+    <Card className="border border-neutral-200 rounded-md shadow-xl hover:shadow-2xl transition-all hover:scale-105 duration-300 cursor-pointer">
       <CardContent className="p-3 border-b border-neutral-200">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -56,13 +56,10 @@ export function DeviceCard({ device }: DeviceCardProps) {
         </div>
       </CardContent>
       <CardContent className="p-3">
-        {/* Device Information Rows */}
         <div className="space-y-2">
           <InfoRow label="Serial Number :" value={device.serialNumber} />
           <InfoRow label="Category :" value={device.category} />
           <InfoRow label="Sub Category :" value={device.subCategory} />
-
-          {/* User Row with Avatars */}
           <div className="flex justify-between items-center py-0.5">
             <span className="text-xs text-neutral-500">User :</span>
             <div className="flex items-center">

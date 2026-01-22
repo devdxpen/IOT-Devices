@@ -5,7 +5,7 @@ import {
   IoAlertCircleOutline,
   IoCheckmarkCircleOutline,
   IoPauseCircleOutline,
-  IoServerOutline
+  IoServerOutline,
 } from "react-icons/io5";
 
 const mockDevices: Device[] = Array(9)
@@ -29,37 +29,35 @@ const mockDevices: Device[] = Array(9)
 export default function HomePage() {
   return (
     <>
-      <div className="flex flex-col gap-6 w-full h-full mb-5">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard
-            icon={IoServerOutline}
-            label="Total Devices"
-            value="10,987"
-            iconBgColor="bg-neutral-100"
-            iconColor="text-neutral-600"
-          />
-          <StatsCard
-            icon={IoCheckmarkCircleOutline}
-            label="Active Devices"
-            value="10,987"
-            iconBgColor="bg-neutral-100"
-            iconColor="text-neutral-600"
-          />
-          <StatsCard
-            icon={IoPauseCircleOutline}
-            label="In-active Devices"
-            value="10,987"
-            iconBgColor="bg-neutral-100"
-            iconColor="text-neutral-600"
-          />
-          <StatsCard
-            icon={IoAlertCircleOutline}
-            label="Faulty Devices"
-            value="10,987"
-            iconBgColor="bg-neutral-100"
-            iconColor="text-neutral-600"
-          />
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-5">
+        <StatsCard
+          icon={IoServerOutline}
+          label="Total Devices"
+          value="10,987"
+          iconBgColor="bg-neutral-100"
+          iconColor="text-neutral-600"
+        />
+        <StatsCard
+          icon={IoCheckmarkCircleOutline}
+          label="Active Devices"
+          value="10,987"
+          iconBgColor="bg-neutral-100"
+          iconColor="text-neutral-600"
+        />
+        <StatsCard
+          icon={IoPauseCircleOutline}
+          label="In-active Devices"
+          value="10,987"
+          iconBgColor="bg-neutral-100"
+          iconColor="text-neutral-600"
+        />
+        <StatsCard
+          icon={IoAlertCircleOutline}
+          label="Faulty Devices"
+          value="10,987"
+          iconBgColor="bg-neutral-100"
+          iconColor="text-neutral-600"
+        />
       </div>
       <DevicesManagement devices={mockDevices} />
     </>

@@ -41,9 +41,9 @@ export default function RootLayout({
         {/* ThemeProvider enables theme switching: light, dark, or system preference */}
         <ThemeProvider defaultTheme="system">
           <Sidebar />
-          <div className="h-screen overflow-y-auto w-full">
+          <div className="h-screen w-full flex flex-col">
             <Header />
-            <main className="px-6 pt-6 -mt-2 pb-6 min-h-[calc(100vh-64px)]">
+            <main className="px-6 pt-6 pb-6 h-[calc(100vh-64px)] flex flex-col">
               {children}
             </main>
           </div>

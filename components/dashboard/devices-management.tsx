@@ -33,9 +33,9 @@ export function DevicesManagement({ devices }: DevicesManagementProps) {
   const [location, setLocation] = useState("ahmedabad");
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-sm">
+    <div className="h-full flex flex-col bg-white rounded-sm shadow-md overflow-hidden">
       {/* Sticky Header Row */}
-      <div className="sticky top-0 z-10 p-4 border-b border-neutral-200 ">
+      <div className="z-10 p-4 border-b border-neutral-200 ">
         <div className="flex items-center justify-between">
           {/* Title */}
           <div>
@@ -111,12 +111,10 @@ export function DevicesManagement({ devices }: DevicesManagementProps) {
           </div>
         </div>
       </div>
-      <div className="p-5">
-        <div className="grid grid-cols-4 gap-5">
-          {devices.map((device) => (
-            <DeviceCard key={device.id} device={device} />
-          ))}
-        </div>
+      <div className="p-5 grid grid-cols-4 gap-5 overflow-y-auto">
+        {devices.map((device) => (
+          <DeviceCard key={device.id} device={device} />
+        ))}
       </div>
     </div>
   );
