@@ -20,7 +20,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function DeviceCard({ device }: DeviceCardProps) {
   return (
-    <Card className="overflow-hidden border border-neutral-200 rounded-md shadow-xl">
+    <Card className="overflow-hidden border border-neutral-200 rounded-md shadow-xl hover:shadow-2xl transition-all hover:scale-105 duration-300 cursor-pointer">
       <CardContent className="p-3 border-b border-neutral-200">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">

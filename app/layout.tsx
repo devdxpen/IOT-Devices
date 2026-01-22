@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, Nunito } from "next/font/google";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { ThemeProvider } from "@/lib/theme";
 
+/**
+ * Font Configuration
+ * Uses design token variable for consistent typography
+ */
 const nunito = Nunito({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -16,21 +21,33 @@ export const metadata: Metadata = {
   description: "IoT device management system",
 };
 
+/**
+ * Root Layout
+ *
+ * Wraps the application with:
+ * - ThemeProvider for light/dark/system theme support
+ * - Design token-based styling (bg-background instead of hardcoded colors)
+ */
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${nunito.variable} bg-gray-100 grid grid-cols-[auto_1fr] h-screen overflow-hidden relative`}>
-        <Sidebar />
-        <div className="h-screen overflow-y-auto w-full">
-          <Header />
-          <main className="px-6 pt-6 -mt-2 pb-6 min-h-[calc(100vh-64px)]">
-            {children}
-          </main>
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${nunito.variable} bg-background text-foreground grid grid-cols-[auto_1fr] h-screen overflow-hidden relative`}
+      >
+        {/* ThemeProvider enables theme switching: light, dark, or system preference */}
+        <ThemeProvider defaultTheme="system">
+          <Sidebar />
+          <div className="h-screen overflow-y-auto w-full">
+            <Header />
+            <main className="px-6 pt-6 -mt-2 pb-6 min-h-[calc(100vh-64px)]">
+              {children}
+            </main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
