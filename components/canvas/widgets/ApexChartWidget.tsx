@@ -3,6 +3,7 @@
 import React, { memo } from "react";
 import { NodeProps } from "@xyflow/react";
 import dynamic from "next/dynamic";
+import { ApexOptions } from "apexcharts";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -10,8 +11,8 @@ const chartConfigs: Record<
   string,
   {
     type: "bar" | "line" | "pie" | "donut" | "radar" | "area" | "radialBar";
-    options: ApexCharts.ApexOptions;
-    series: ApexAxisChartSeries | number[];
+    options: ApexOptions;
+    series: NonNullable<ApexOptions["series"]>;
   }
 > = {
   chart_bar: {
@@ -169,7 +170,7 @@ export const ApexChartWidget = memo(function ApexChartWidget({
       <div className="w-full">
         <Chart
           options={config.options}
-          series={config.series as ApexAxisChartSeries}
+          series={config.series as any}
           type={config.type}
           height={180}
           width="100%"
