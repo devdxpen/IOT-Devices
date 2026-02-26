@@ -16,6 +16,8 @@ import {
   IoCodeSlashOutline,
   IoChevronBackOutline,
   IoChevronForwardOutline,
+  IoPeopleOutline,
+  IoLayersOutline,
 } from "react-icons/io5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -52,6 +54,18 @@ const navItems: NavItem[] = [
     icon: IoTabletPortraitOutline,
     label: "Device",
     href: "/device",
+    section: "main",
+  },
+  {
+    icon: IoPeopleOutline,
+    label: "Groups",
+    href: "/groups",
+    section: "main",
+  },
+  {
+    icon: IoLayersOutline,
+    label: "Templates",
+    href: "/template-management",
     section: "main",
   },
   {

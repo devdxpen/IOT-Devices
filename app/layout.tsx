@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/lib/theme";
+import { Providers } from "./providers";
 
 /**
  * Font Configuration
@@ -40,13 +41,15 @@ export default function RootLayout({
       >
         {/* ThemeProvider enables theme switching: light, dark, or system preference */}
         <ThemeProvider defaultTheme="system">
-          <Sidebar />
-          <div className="h-screen w-full flex flex-col">
-            <Header />
-            <main className="px-6 pt-6 pb-6 h-[calc(100vh-64px)] flex flex-col">
-              {children}
-            </main>
-          </div>
+          <Providers>
+            <Sidebar />
+            <div className="h-screen w-full flex flex-col">
+              <Header />
+              <main className="px-6 pt-6 pb-6 h-[calc(100vh-64px)] flex flex-col">
+                {children}
+              </main>
+            </div>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
