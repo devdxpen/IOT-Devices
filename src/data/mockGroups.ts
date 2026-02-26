@@ -1,0 +1,164 @@
+import { DeviceGroup, GroupUser, GroupAlarm } from '@/types/group';
+import { Device } from '@/types';
+
+const securityDevices: Device[] = [
+  {
+    id: 'sec-1', name: 'SENSOR-001', serialNumber: 'SENSOR-PRD-001',
+    location: 'Building A, Floor 1', status: 'active', deviceType: 'Access control',
+    category: 'Security', subCategory: 'Access Control', manufacturer: 'SecureTech',
+    model: 'ST-500', firmwareVersion: '2.1.0', macAddress: 'AA:BB:CC:DD:EE:01',
+    password: '****', lastDataTimestamp: '27-07-2025 10:45 AM', alarms: 0,
+    data: { t1: 22.5, t2: 23.1, t3: 21.8 }, users: 3,
+  },
+  {
+    id: 'sec-2', name: 'SENSOR-002', serialNumber: 'SENSOR-PRD-002',
+    location: 'Building C - Floor 10', status: 'active', deviceType: 'Access control',
+    category: 'Security', subCategory: 'Access Control', manufacturer: 'SecureTech',
+    model: 'ST-500', firmwareVersion: '2.1.0', macAddress: 'AA:BB:CC:DD:EE:02',
+    password: '****', lastDataTimestamp: '28-07-2025 10:45 AM', alarms: 2,
+    data: { t1: 24.5, t2: 25.1, t3: 23.8 }, users: 5,
+  },
+  {
+    id: 'sec-3', name: 'SENSOR-003', serialNumber: 'SENSOR-PRD-003',
+    location: 'Building B, Floor 2', status: 'inactive', deviceType: 'Access control',
+    category: 'Security', subCategory: 'Access Control', manufacturer: 'SecureTech',
+    model: 'ST-600', firmwareVersion: '2.0.5', macAddress: 'AA:BB:CC:DD:EE:03',
+    password: '****', lastDataTimestamp: '25-07-2025 08:30 AM', alarms: 1,
+    data: { t1: 21.0, t2: 22.0, t3: 20.5 }, users: 2,
+  },
+];
+
+const powerDevices: Device[] = [
+  {
+    id: 'pow-1', name: 'SENSOR-001', serialNumber: 'SENSOR-DEV-001',
+    location: 'Building A, Floor 1', status: 'active', deviceType: 'Power Control',
+    category: 'Power', subCategory: 'UPS', manufacturer: 'PowerMax',
+    model: 'PM-1000', firmwareVersion: '3.0.1', macAddress: 'AA:BB:CC:DD:FF:01',
+    password: '****', lastDataTimestamp: '27-07-2025 10:45 AM', alarms: 0,
+    data: { t1: 45.5, t2: 46.1, t3: 44.8 }, users: 3,
+  },
+  {
+    id: 'pow-2', name: 'SENSOR-002', serialNumber: 'SENSOR-DEV-002',
+    location: 'Building C - Floor 10', status: 'inactive', deviceType: 'Power Control',
+    category: 'Power', subCategory: 'Generator', manufacturer: 'PowerMax',
+    model: 'PM-2000', firmwareVersion: '3.0.1', macAddress: 'AA:BB:CC:DD:FF:02',
+    password: '****', lastDataTimestamp: '28-07-2025 10:45 AM', alarms: 2,
+    data: { t1: 50.5, t2: 51.1, t3: 49.8 }, users: 5,
+  },
+  {
+    id: 'pow-3', name: 'SENSOR-003', serialNumber: 'SENSOR-DEV-003',
+    location: 'Building A, Floor 1', status: 'active', deviceType: 'Power Control',
+    category: 'Power', subCategory: 'Smart Meter', manufacturer: 'PowerMax',
+    model: 'PM-1500', firmwareVersion: '3.1.0', macAddress: 'AA:BB:CC:DD:FF:03',
+    password: '****', lastDataTimestamp: '27-07-2025 10:45 AM', alarms: 0,
+    data: { t1: 42.0, t2: 43.0, t3: 41.5 }, users: 3,
+  },
+];
+
+const environmentalDevices: Device[] = [
+  {
+    id: 'env-1', name: 'TEMP-001', serialNumber: 'ENV-TEMP-001',
+    location: 'Server Room A', status: 'active', deviceType: 'Temperature Sensor',
+    category: 'Environmental', subCategory: 'Temperature', manufacturer: 'EnviroSense',
+    model: 'ES-T100', firmwareVersion: '1.5.0', macAddress: 'AA:BB:CC:EE:FF:01',
+    password: '****', lastDataTimestamp: '27-07-2025 10:30 AM', alarms: 0,
+    data: { t1: 22.0, t2: 22.5, t3: 21.5 }, users: 2,
+  },
+  {
+    id: 'env-2', name: 'HUM-001', serialNumber: 'ENV-HUM-001',
+    location: 'Server Room B', status: 'active', deviceType: 'Humidity Sensor',
+    category: 'Environmental', subCategory: 'Humidity', manufacturer: 'EnviroSense',
+    model: 'ES-H100', firmwareVersion: '1.5.0', macAddress: 'AA:BB:CC:EE:FF:02',
+    password: '****', lastDataTimestamp: '27-07-2025 10:32 AM', alarms: 1,
+    data: { t1: 55.0, t2: 56.0, t3: 54.0 }, users: 2,
+  },
+];
+
+const networkDevices: Device[] = [
+  {
+    id: 'net-1', name: 'ROUTER-001', serialNumber: 'NET-RTR-001',
+    location: 'Data Center', status: 'active', deviceType: 'Router',
+    category: 'Network', subCategory: 'Core Router', manufacturer: 'NetGear',
+    model: 'NG-5000', firmwareVersion: '4.2.1', macAddress: 'AA:BB:DD:EE:FF:01',
+    password: '****', lastDataTimestamp: '27-07-2025 10:40 AM', alarms: 0,
+    data: { t1: 35.0, t2: 36.0, t3: 34.0 }, users: 4,
+  },
+  {
+    id: 'net-2', name: 'SWITCH-001', serialNumber: 'NET-SWT-001',
+    location: 'Floor 1 Rack', status: 'active', deviceType: 'Switch',
+    category: 'Network', subCategory: 'Layer 2 Switch', manufacturer: 'NetGear',
+    model: 'NG-2400', firmwareVersion: '4.1.0', macAddress: 'AA:BB:DD:EE:FF:02',
+    password: '****', lastDataTimestamp: '27-07-2025 10:42 AM', alarms: 0,
+    data: { t1: 32.0, t2: 33.0, t3: 31.0 }, users: 3,
+  },
+];
+
+export const mockGroups: DeviceGroup[] = [
+  {
+    id: 'grp-1', name: 'Ahmedabad top 10', icon: 'security', status: 'active',
+    deviceCount: 3, activeUsers: 5, inactiveUsers: 2, lastUpdated: 'Today, 11:30 AM',
+    devices: securityDevices, tags: 'T1', validityStart: 'May 19 2025',
+    validityEnd: 'May 19 2026', alarms: 3,
+    createdAt: '2025-05-19T00:00:00Z', updatedAt: '2025-07-27T11:30:00Z',
+  },
+  {
+    id: 'grp-2', name: 'Power Management', icon: 'power', status: 'active',
+    deviceCount: 3, activeUsers: 5, inactiveUsers: 2, lastUpdated: 'Today, 09:15 AM',
+    devices: powerDevices, tags: 'T1', validityStart: 'May 19 2025',
+    validityEnd: 'May 19 2026', alarms: 3,
+    createdAt: '2025-05-19T00:00:00Z', updatedAt: '2025-07-27T09:15:00Z',
+  },
+  {
+    id: 'grp-3', name: 'Environmental Monitor', icon: 'environmental', status: 'active',
+    deviceCount: 2, activeUsers: 3, inactiveUsers: 1, lastUpdated: 'Today, 10:00 AM',
+    devices: environmentalDevices, tags: 'T2', validityStart: 'Jan 19 2025',
+    validityEnd: 'Dec 31 2025', alarms: 1,
+    createdAt: '2025-01-19T00:00:00Z', updatedAt: '2025-07-27T10:00:00Z',
+  },
+  {
+    id: 'grp-4', name: 'Network Infrastructure', icon: 'network', status: 'inactive',
+    deviceCount: 2, activeUsers: 4, inactiveUsers: 3, lastUpdated: 'Yesterday, 05:30 PM',
+    devices: networkDevices, tags: 'T3', validityStart: 'Jun 01 2025',
+    validityEnd: 'Jun 01 2026', alarms: 0,
+    createdAt: '2025-06-01T00:00:00Z', updatedAt: '2025-07-26T17:30:00Z',
+  },
+];
+
+export const mockGroupUsers: GroupUser[] = [
+  {
+    id: 'gu-1', name: 'Priya Mehta', department: 'HR', assignedDevices: 4,
+    assignedBy: 'Priya Mehta', assignedByRole: 'Admin',
+    validityStart: 'May 19 2025', validityEnd: 'Jun 19, 2026',
+    status: 'approved', role: 'Viewer',
+  },
+  {
+    id: 'gu-2', name: 'Priya Mehta', department: 'QA', assignedDevices: 5,
+    assignedBy: 'Priya Mehta', assignedByRole: 'Admin',
+    validityStart: 'May 19 2025', validityEnd: 'Unlimited',
+    status: 'approved', role: 'Viewer',
+  },
+  {
+    id: 'gu-3', name: 'Priya Mehta', department: 'Tester', assignedDevices: 6,
+    assignedBy: '-- Requested --', assignedByRole: '',
+    validityStart: '--', validityEnd: 'Requested Today',
+    status: 'pending', role: 'Viewer',
+  },
+  {
+    id: 'gu-4', name: 'Priya Mehta', department: 'Designer', assignedDevices: 6,
+    assignedBy: 'Priya Mehta', assignedByRole: 'Admin',
+    validityStart: 'May 19 2025', validityEnd: 'Jun 19, 2025',
+    status: 'invited', role: 'Viewer',
+  },
+];
+
+export const mockGroupAlarms: GroupAlarm[] = [
+  { id: 'ga-1', name: 'Morning temperature', tag: 'T4', condition: 'T1 < 10', recipientCount: 5, alarmType: 'Critical', status: false },
+  { id: 'ga-2', name: 'Temperature Alarm', tag: 'T4', condition: 'T1 < 10', recipientCount: 5, alarmType: 'Major', status: false },
+  { id: 'ga-3', name: 'Temperature Alarm', tag: 'T4', condition: 'T1 < 10', recipientCount: 5, alarmType: 'Minor', status: false },
+];
+
+export const groupDeviceTypes = [
+  'All', 'Access control', 'Power Control', 'Temperature Sensor',
+  'Humidity Sensor', 'Router', 'Switch',
+];
+
