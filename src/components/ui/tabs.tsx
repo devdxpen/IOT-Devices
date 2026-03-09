@@ -79,7 +79,7 @@ const TabsTrigger = React.forwardRef<
       // Disabled state
       "disabled:pointer-events-none disabled:opacity-50",
       // Active state - uses card background for elevated appearance
-      "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "data-[state=active]:bg-primary data-[state=active]:text-white",
       className,
     )}
     {...props}
