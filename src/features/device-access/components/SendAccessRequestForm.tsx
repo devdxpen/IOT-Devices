@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IoSearchOutline } from "react-icons/io5";
 
-export function SendAccessRequestForm() {
+interface SendAccessRequestFormProps {
+  onSendRequest?: (deviceId: string) => void;
+}
+
+export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormProps) {
   const [deviceId, setDeviceId] = useState("");
   const [deviceFound, setDeviceFound] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
@@ -20,7 +24,9 @@ export function SendAccessRequestForm() {
   };
 
   const handleSendRequest = () => {
-    // In a real app, this would dispatch an API call
+    if (onSendRequest) {
+      onSendRequest(deviceId);
+    }
     setRequestSent(true);
   };
 

@@ -3,8 +3,7 @@ import { DeviceAccessManagement } from "@/features/device-access/components/Devi
 
 export default function HomePage() {
   return (
-    <div className="flex-1 w-full h-full">
-      <Tabs defaultValue="home" className="w-full">
+    <Tabs defaultValue="home" className="w-full flex-1 h-full">
         <div className="flex justify-between items-center mb-6">
           <TabsList className="">
             <TabsTrigger value="home">Home</TabsTrigger>
@@ -32,6 +31,5 @@ export default function HomePage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
   );
 }

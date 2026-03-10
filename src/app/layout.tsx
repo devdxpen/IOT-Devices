@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/lib/theme";
 import { Providers } from "./providers";
 import { appConfig } from "@/config/app";
+import { Toaster } from "sonner";
 
 /**
  * Font Configuration
@@ -52,6 +53,7 @@ export default function RootLayout({
             </div>
           </Providers>
         </ThemeProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
