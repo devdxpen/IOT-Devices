@@ -4,7 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeviceGroup } from "@/types/group";
 
@@ -16,7 +19,10 @@ interface GroupCardViewProps {
 }
 
 export function GroupCardView({
-  groups, onViewGroup, onEditGroup, onDeleteGroup,
+  groups,
+  onViewGroup,
+  onEditGroup,
+  onDeleteGroup,
 }: GroupCardViewProps) {
   if (groups.length === 0) {
     return (
@@ -36,14 +42,22 @@ export function GroupCardView({
               <div className="flex items-center gap-3">
                 <Checkbox />
                 <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                  <img src="/placeholder.svg" alt="" className="h-10 w-10 object-cover" />
+                  <img
+                    src="/placeholder.svg"
+                    alt=""
+                    className="h-10 w-10 object-cover"
+                  />
                 </div>
                 <div>
                   <p className="font-medium flex items-center gap-2">
                     {group.name}
-                    <span className={`h-2 w-2 rounded-full ${group.status === 'active' ? 'bg-emerald-500' : 'bg-orange-400'}`} />
+                    <span
+                      className={`h-2 w-2 rounded-full ${group.status === "active" ? "bg-emerald-500" : "bg-orange-400"}`}
+                    />
                   </p>
-                  <p className="text-xs text-muted-foreground">{group.deviceCount} Devices</p>
+                  <p className="text-xs text-muted-foreground">
+                    {group.deviceCount} Devices
+                  </p>
                 </div>
               </div>
               <DropdownMenu>
@@ -53,9 +67,18 @@ export function GroupCardView({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onViewGroup(group)}>View Details</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEditGroup(group)}>Edit Group</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDeleteGroup(group)} className="text-destructive">Delete Group</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewGroup(group)}>
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEditGroup(group)}>
+                    Edit Group
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onDeleteGroup(group)}
+                    className="text-destructive"
+                  >
+                    Delete Group
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -82,12 +105,19 @@ export function GroupCardView({
                 <span className="text-muted-foreground">Users :</span>
                 <div className="flex items-center -space-x-2">
                   {[...Array(Math.min(3, group.activeUsers))].map((_, i) => (
-                    <Avatar key={i} className="h-6 w-6 border-2 border-background">
-                      <AvatarFallback className="text-[10px] bg-muted">U</AvatarFallback>
+                    <Avatar
+                      key={i}
+                      className="h-6 w-6 border-2 border-background"
+                    >
+                      <AvatarFallback className="text-[10px] bg-muted">
+                        U
+                      </AvatarFallback>
                     </Avatar>
                   ))}
                   {group.activeUsers > 3 && (
-                    <span className="text-xs text-muted-foreground ml-3">+{group.activeUsers - 3}</span>
+                    <span className="text-xs text-muted-foreground ml-3">
+                      +{group.activeUsers - 3}
+                    </span>
                   )}
                 </div>
               </div>
@@ -98,4 +128,3 @@ export function GroupCardView({
     </div>
   );
 }
-

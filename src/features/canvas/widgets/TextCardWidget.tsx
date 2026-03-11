@@ -13,7 +13,6 @@ export function TextCardWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-64 p-4 shadow-lg border-2 border-amber-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <FileText className="text-amber-600" size={20} />
@@ -46,4 +45,3 @@ export function TextCardWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

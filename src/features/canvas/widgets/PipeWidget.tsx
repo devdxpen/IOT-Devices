@@ -25,4 +25,3 @@ export const PipeWidget = memo(function PipeWidget({ data }: NodeProps) {
     </div>
   );
 });
-

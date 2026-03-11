@@ -50,4 +50,3 @@ export const TriangleWidget = memo(function TriangleWidget({
     </div>
   );
 });
-

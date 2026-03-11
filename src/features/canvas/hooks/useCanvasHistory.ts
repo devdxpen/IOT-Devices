@@ -10,7 +10,7 @@ export function useCanvasHistory(
   nodes: Node[],
   edges: Edge[],
   setNodes: (nodes: Node[]) => void,
-  setEdges: (edges: Edge[]) => void
+  setEdges: (edges: Edge[]) => void,
 ) {
   const [history, setHistory] = useState<HistoryState[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);

@@ -50,13 +50,18 @@ export function ForgotPasswordForm() {
       </h2>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
           <FormField
             control={form.control}
             name="contactNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-600">Contact Number <span className="text-red-500">*</span></FormLabel>
+                <FormLabel className="text-slate-600">
+                  Contact Number <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <PhoneInput
                     international
@@ -72,14 +77,20 @@ export function ForgotPasswordForm() {
             )}
           />
 
-          <Button type="submit" className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white">
+          <Button
+            type="submit"
+            className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+          >
             Send OTP
           </Button>
         </form>
       </Form>
 
       <div className="mt-8 text-center text-sm">
-        <Link href="/login" className="font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
+        <Link
+          href="/login"
+          className="font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to Login
         </Link>
       </div>

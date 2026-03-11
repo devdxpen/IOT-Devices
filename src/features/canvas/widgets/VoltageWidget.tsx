@@ -90,7 +90,6 @@ export function VoltageWidget({ id }: NodeProps) {
           ref={cardRef}
           className="w-64 shadow-lg border border-gray-100 bg-white overflow-hidden"
         >
-
           <div className="flex">
             {/* Voltage Section */}
             <div className="flex-1 p-4 border-r border-gray-100">
@@ -168,4 +167,3 @@ export function VoltageWidget({ id }: NodeProps) {
     </ContextMenu>
   );
 }
-

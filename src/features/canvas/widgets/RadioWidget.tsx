@@ -18,7 +18,6 @@ export function RadioWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-52 p-4 shadow-lg border-2 border-indigo-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <CircleDot className="text-indigo-600" size={20} />
@@ -65,4 +64,3 @@ export function RadioWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

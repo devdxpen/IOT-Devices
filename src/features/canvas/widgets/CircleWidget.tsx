@@ -41,4 +41,3 @@ export const CircleWidget = memo(function CircleWidget({ data }: NodeProps) {
     </div>
   );
 });
-

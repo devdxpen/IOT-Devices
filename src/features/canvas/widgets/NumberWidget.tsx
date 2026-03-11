@@ -21,4 +21,3 @@ export const NumberWidget = memo(function NumberWidget({
     </div>
   );
 });
-

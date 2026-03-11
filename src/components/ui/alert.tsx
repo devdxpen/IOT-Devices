@@ -77,8 +77,7 @@ const variantIcons = {
 };
 
 interface AlertProps
-  extends
-    React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
   /** Show the variant icon */
   showIcon?: boolean;
@@ -170,4 +169,3 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription, alertVariants };
-

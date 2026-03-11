@@ -38,4 +38,3 @@ export const LineWidget = memo(function LineWidget({ data }: NodeProps) {
     </div>
   );
 });
-

@@ -100,4 +100,3 @@ export const ListWidget = memo(function ListWidget({ data, type }: NodeProps) {
     </div>
   );
 });
-

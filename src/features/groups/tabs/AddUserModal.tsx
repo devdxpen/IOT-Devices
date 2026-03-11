@@ -377,4 +377,3 @@ export function AddUserModal({ open, onClose, onAdd }: AddUserModalProps) {
     </Dialog>
   );
 }
-

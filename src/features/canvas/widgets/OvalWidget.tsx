@@ -43,4 +43,3 @@ export const OvalWidget = memo(function OvalWidget({ data }: NodeProps) {
     </div>
   );
 });
-

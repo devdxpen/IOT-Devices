@@ -44,4 +44,3 @@ export const CombinationWidget = memo(function CombinationWidget({
     </div>
   );
 });
-

@@ -28,4 +28,3 @@ export const WordSwitchWidget = memo(function WordSwitchWidget({
     </div>
   );
 });
-

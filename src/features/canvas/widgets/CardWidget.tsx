@@ -23,4 +23,3 @@ export const CardWidget = memo(function CardWidget({ data }: NodeProps) {
     </div>
   );
 });
-

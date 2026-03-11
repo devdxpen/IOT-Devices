@@ -32,4 +32,3 @@ export const IframeWidget = memo(function IframeWidget({ data }: NodeProps) {
     </div>
   );
 });
-

@@ -150,4 +150,3 @@ export const TableWidget = memo(function TableWidget({ data, id }: NodeProps) {
     </div>
   );
 });
-

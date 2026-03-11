@@ -41,4 +41,3 @@ export const QRCodeWidget = memo(function QRCodeWidget({ data }: NodeProps) {
     </div>
   );
 });
-

@@ -2,19 +2,19 @@
  * ============================================
  * DESIGN TOKENS - MAIN EXPORT
  * ============================================
- * 
+ *
  * This is the central entry point for all design tokens.
  * Import from this file to access any token category.
- * 
+ *
  * Usage:
  * ```typescript
  * import { tokens, primary, fontSize, spacing } from '@/lib/design-tokens';
- * 
+ *
  * // Access nested tokens
  * const primaryColor = tokens.colors.primary[500];
  * const baseFontSize = tokens.typography.fontSize.base;
  * ```
- * 
+ *
  * AI/Automation Notes:
  * - To change primary color: modify `colors.ts` → `primary` object
  * - To change border radius: modify `spacing.ts` → `borderRadius` object
@@ -35,7 +35,7 @@ export {
   type ColorScale,
   type ColorPaletteName,
   type ColorPalette,
-} from './colors';
+} from "./colors";
 
 // Re-export all typography tokens
 export {
@@ -49,7 +49,7 @@ export {
   type FontWeight,
   type LineHeight,
   type LetterSpacing,
-} from './typography';
+} from "./typography";
 
 // Re-export all spacing and effect tokens
 export {
@@ -66,17 +66,17 @@ export {
   type ZIndex,
   type AnimationDuration,
   type AnimationEasing,
-} from './spacing';
+} from "./spacing";
 
 // Import for combined tokens object
-import { colorPalettes } from './colors';
-import { typography } from './typography';
-import { spacingTokens } from './spacing';
+import { colorPalettes } from "./colors";
+import { typography } from "./typography";
+import { spacingTokens } from "./spacing";
 
 /**
  * Combined tokens object
  * Single source of truth for all design tokens
- * 
+ *
  * Structure:
  * - tokens.colors.{palette}.{scale}
  * - tokens.typography.{category}.{size}
@@ -103,7 +103,7 @@ export const tokens = {
  */
 export function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return '0 0 0';
+  if (!result) return "0 0 0";
   return `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}`;
 }
 
@@ -115,4 +115,3 @@ export function cssVar(name: string, fallback?: string): string {
 }
 
 export default tokens;
-

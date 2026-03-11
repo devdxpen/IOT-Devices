@@ -78,7 +78,6 @@ export function ChartWidget({ id }: NodeProps) {
           ref={cardRef}
           className="w-72 p-4 shadow-lg border border-gray-200 bg-gradient-to-br from-green-900 to-green-950 text-white"
         >
-
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <TrendingUp size={18} className="text-green-400" />
@@ -173,4 +172,3 @@ export function ChartWidget({ id }: NodeProps) {
     </ContextMenu>
   );
 }
-

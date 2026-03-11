@@ -179,4 +179,3 @@ export const ApexChartWidget = memo(function ApexChartWidget({
     </div>
   );
 });
-

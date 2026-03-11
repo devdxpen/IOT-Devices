@@ -33,4 +33,3 @@ export const FlowBarWidget = memo(function FlowBarWidget({ data }: NodeProps) {
     </div>
   );
 });
-

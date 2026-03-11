@@ -42,4 +42,3 @@ export const ConsoleWidget = memo(function ConsoleWidget({ data }: NodeProps) {
     </div>
   );
 });
-

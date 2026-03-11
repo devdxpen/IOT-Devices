@@ -33,4 +33,3 @@ export const BitSwitchWidget = memo(function BitSwitchWidget({
     </div>
   );
 });
-

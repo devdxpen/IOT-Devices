@@ -41,7 +41,6 @@ export function GaugeWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-52 p-4 shadow-lg border-2 border-emerald-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Gauge className="text-emerald-600" size={20} />
@@ -109,4 +108,3 @@ export function GaugeWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

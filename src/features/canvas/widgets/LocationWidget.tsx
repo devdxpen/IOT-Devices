@@ -104,4 +104,3 @@ export function LocationWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

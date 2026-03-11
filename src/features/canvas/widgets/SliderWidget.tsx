@@ -12,7 +12,6 @@ export function SliderWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-56 p-4 shadow-lg border-2 border-cyan-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="text-cyan-600" size={20} />
@@ -57,4 +56,3 @@ export function SliderWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

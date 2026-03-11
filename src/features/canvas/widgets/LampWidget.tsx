@@ -25,4 +25,3 @@ export const LampWidget = memo(function LampWidget({ data, type }: NodeProps) {
     </div>
   );
 });
-

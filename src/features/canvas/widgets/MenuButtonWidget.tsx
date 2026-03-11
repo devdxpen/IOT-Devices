@@ -42,4 +42,3 @@ export const MenuButtonWidget = memo(function MenuButtonWidget({
     </div>
   );
 });
-

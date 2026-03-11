@@ -1,33 +1,33 @@
 import {
-  IoAlertCircleOutline,
-  IoCheckmarkCircleOutline,
-  IoPauseCircleOutline,
-  IoServerOutline,
-} from "react-icons/io5";
+  AlertCircle,
+  CheckCircle2,
+  PauseCircle,
+  Server,
+} from "lucide-react";
 
 export const dashboardStats = [
   {
     key: "total-devices",
     label: "Total Devices",
     value: "10,987",
-    icon: IoServerOutline,
+    icon: Server,
   },
   {
     key: "active-devices",
     label: "Active Devices",
     value: "10,987",
-    icon: IoCheckmarkCircleOutline,
+    icon: CheckCircle2,
   },
   {
     key: "inactive-devices",
     label: "In-active Devices",
     value: "10,987",
-    icon: IoPauseCircleOutline,
+    icon: PauseCircle,
   },
   {
     key: "faulty-devices",
     label: "Faulty Devices",
     value: "10,987",
-    icon: IoAlertCircleOutline,
+    icon: AlertCircle,
   },
 ];

@@ -47,4 +47,3 @@ export const DashboardWidget = memo(function DashboardWidget({
     </div>
   );
 });
-

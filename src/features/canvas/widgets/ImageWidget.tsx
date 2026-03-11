@@ -15,7 +15,6 @@ export function ImageWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-64 p-4 shadow-lg border-2 border-teal-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ImageIcon className="text-teal-600" size={20} />
@@ -73,4 +72,3 @@ export function ImageWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

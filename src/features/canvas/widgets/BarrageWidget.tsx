@@ -20,4 +20,3 @@ export const BarrageWidget = memo(function BarrageWidget({ data }: NodeProps) {
     </div>
   );
 });
-

@@ -21,4 +21,3 @@ export function CustomNode({ data, type }: NodeProps) {
     </Card>
   );
 }
-

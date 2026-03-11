@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface GroupPaginationProps {
@@ -14,8 +18,12 @@ interface GroupPaginationProps {
 }
 
 export function GroupPagination({
-  currentPage, totalPages, totalItems, itemsPerPage,
-  onPageChange, onItemsPerPageChange,
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  onItemsPerPageChange,
 }: GroupPaginationProps) {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -23,7 +31,7 @@ export function GroupPagination({
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1, 2, 3);
-      if (totalPages > 4) pages.push('...');
+      if (totalPages > 4) pages.push("...");
       pages.push(totalPages);
     }
     return pages;
@@ -51,7 +59,8 @@ export function GroupPagination({
 
       <div className="flex items-center gap-1">
         <Button
-          variant="outline" size="sm"
+          variant="outline"
+          size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="h-8 px-2"
@@ -61,8 +70,10 @@ export function GroupPagination({
         </Button>
 
         {getPageNumbers().map((page, i) =>
-          typeof page === 'string' ? (
-            <span key={i} className="px-2 text-muted-foreground">...</span>
+          typeof page === "string" ? (
+            <span key={i} className="px-2 text-muted-foreground">
+              ...
+            </span>
           ) : (
             <Button
               key={i}
@@ -73,11 +84,12 @@ export function GroupPagination({
             >
               {page}
             </Button>
-          )
+          ),
         )}
 
         <Button
-          variant="outline" size="sm"
+          variant="outline"
+          size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className="h-8 px-2"
@@ -89,4 +101,3 @@ export function GroupPagination({
     </div>
   );
 }
-

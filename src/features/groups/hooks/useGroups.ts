@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { GroupFilterState } from '@/types/group';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { GroupFilterState } from "@/types/group";
 import {
   fetchGroups,
   fetchGroupById,
@@ -12,21 +12,25 @@ import {
   fetchGroupAlarms,
   type GroupListResponse,
   type GroupDetailResponse,
-} from '@/features/groups/api/groupApi';
+} from "@/features/groups/api/groupApi";
 
 // ─── Query Keys ───
 const keys = {
-  all: ['groups'] as const,
+  all: ["groups"] as const,
   list: (filters: GroupFilterState, page: number, pageSize: number) =>
-    [...keys.all, 'list', filters, page, pageSize] as const,
-  detail: (id: string) => [...keys.all, 'detail', id] as const,
-  availableDevices: (search: string) => ['available-devices', search] as const,
-  users: () => ['group-users'] as const,
-  alarms: () => ['group-alarms'] as const,
+    [...keys.all, "list", filters, page, pageSize] as const,
+  detail: (id: string) => [...keys.all, "detail", id] as const,
+  availableDevices: (search: string) => ["available-devices", search] as const,
+  users: () => ["group-users"] as const,
+  alarms: () => ["group-alarms"] as const,
 };
 
 // ─── List ───
-export function useGroups(filters: GroupFilterState, page: number, pageSize: number) {
+export function useGroups(
+  filters: GroupFilterState,
+  page: number,
+  pageSize: number,
+) {
   return useQuery<GroupListResponse>({
     queryKey: keys.list(filters, page, pageSize),
     queryFn: () => fetchGroups(filters, page, pageSize),
@@ -58,8 +62,13 @@ export function useCreateGroup() {
 export function useUpdateGroup() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof updateGroup>[1] }) =>
-      updateGroup(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof updateGroup>[1];
+    }) => updateGroup(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: keys.all });
       qc.invalidateQueries({ queryKey: keys.detail(variables.id) });
@@ -112,4 +121,3 @@ export function useGroupAlarms() {
     queryFn: fetchGroupAlarms,
   });
 }
-

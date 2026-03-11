@@ -32,4 +32,3 @@ export const VideoWidget = memo(function VideoWidget({ data }: NodeProps) {
     </div>
   );
 });
-

@@ -17,6 +17,7 @@ import {
   useNodesState,
   useEdgesState,
   useReactFlow,
+  useViewport,
   BackgroundVariant,
   NodeTypes,
 } from "@xyflow/react";
@@ -81,10 +82,38 @@ import { DashboardWidget } from "./widgets/DashboardWidget";
 import { ListWidget } from "./widgets/ListWidget";
 import { LeftSidebar } from "./LeftSidebar";
 
+// ─── Canvas boundaries that follow viewport ────────────────────
+export function CanvasBoundaries({
+  width,
+  height,
+  color,
+  image,
+}: {
+  width: number;
+  height: number;
+  color: string;
+  image?: string;
+}) {
+  const { x, y, zoom } = useViewport();
+  return (
+    <div
+      className="absolute top-0 left-0 z-0 pointer-events-none border-2 border-gray-200  bg-no-repeat bg-[length:100%_100%]"
+      style={{
+        width,
+        height,
+        backgroundColor: color,
+        backgroundImage: image ? `url(${image})` : undefined,
+        transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+        transformOrigin: "0 0",
+      }}
+    />
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
 // NODE_TYPES — maps every sidebar `type` string to its component
 // ═══════════════════════════════════════════════════════════════
-const NODE_TYPES: NodeTypes = {
+export const NODE_TYPES: NodeTypes = {
   // ── Basic ──
   text: CustomNode,
   image: ImageWidget,
@@ -304,10 +333,47 @@ interface CanvasPage {
   canvasSize: { width: number; height: number };
 }
 
-const createNewPage = (index: number): CanvasPage => ({
+// Default Pre-built Canvas Data for New Templates
+const prebuiltNodes: Node[] = [
+  {
+    id: "default_title",
+    type: "textcard",
+    position: { x: 40, y: 40 },
+    data: { label: "Main Dashboard", content: "Overview of system status" },
+  },
+  {
+    id: "default_temp",
+    type: "temperature",
+    position: { x: 340, y: 40 },
+    data: { label: "Server Temp", value: 38 },
+  },
+  {
+    id: "default_health",
+    type: "health",
+    position: { x: 600, y: 40 },
+    data: { label: "System Health", value: 98 },
+  },
+  {
+    id: "default_chart",
+    type: "line-chart",
+    position: { x: 40, y: 220 },
+    data: { label: "Network Traffic" },
+  },
+  {
+    id: "default_gauge",
+    type: "gauge",
+    position: { x: 500, y: 220 },
+    data: { label: "CPU Usage", value: 45 },
+  },
+];
+
+const createNewPage = (
+  index: number,
+  initialNodes: Node[] = [],
+): CanvasPage => ({
   id: `page_${Date.now()}_${index}`,
   name: `Canvas ${index}`,
-  nodes: [],
+  nodes: initialNodes,
   edges: [],
   backgroundColor: "#ffffff",
   backgroundImage: "",
@@ -320,12 +386,22 @@ const createNewPage = (index: number): CanvasPage => ({
 let nodeId = 0;
 const getId = () => `node_${++nodeId}_${Date.now()}`;
 
-export function CanvasEditor() {
+export function CanvasEditor({
+  initialData,
+  onSaveCanvas,
+  onClose,
+}: {
+  initialData?: string;
+  onSaveCanvas?: (data: string) => void;
+  onClose?: () => void;
+}) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition, fitBounds, zoomIn, zoomOut } = useReactFlow();
 
   // ── Multi-canvas pages ──
-  const [initialPage] = useState<CanvasPage>(() => createNewPage(1));
+  const [initialPage] = useState<CanvasPage>(() =>
+    createNewPage(1, initialData ? [] : prebuiltNodes),
+  );
   const [pages, setPages] = useState<CanvasPage[]>([initialPage]);
   const [activePageId, setActivePageId] = useState<string>(initialPage.id);
 
@@ -417,6 +493,27 @@ export function CanvasEditor() {
     },
     [activePageId],
   );
+
+  // ── Initial Data Load ──
+  useEffect(() => {
+    if (initialData) {
+      try {
+        const data = JSON.parse(initialData);
+        if (data.pages && Array.isArray(data.pages)) {
+          setPages(data.pages);
+          setActivePageId(data.pages[0]?.id ?? "");
+          setNodes(data.pages[0]?.nodes ?? []);
+          setEdges(data.pages[0]?.edges ?? []);
+        } else {
+          setNodes(data.nodes || []);
+          setEdges(data.edges || []);
+          if (data.templateName) setTemplateName(data.templateName);
+        }
+      } catch (err) {
+        console.error("Failed to parse initial canvas data", err);
+      }
+    }
+  }, [initialData, setNodes, setEdges, setTemplateName]);
 
   // ── State ──
   const [selectedTool, setSelectedTool] = useState("select");
@@ -587,6 +684,12 @@ export function CanvasEditor() {
         : p,
     );
     const data = JSON.stringify({ pages: allPages }, null, 2);
+
+    if (onSaveCanvas) {
+      onSaveCanvas(data);
+      return;
+    }
+
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -594,7 +697,7 @@ export function CanvasEditor() {
     a.download = `${templateName.replace(/\s+/g, "_").toLowerCase()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [nodes, edges, templateName, pages, activePageId]);
+  }, [nodes, edges, templateName, pages, activePageId, onSaveCanvas]);
 
   const loadCanvas = useCallback(() => {
     const input = document.createElement("input");
@@ -894,6 +997,7 @@ export function CanvasEditor() {
           setBackgroundColor={setBackgroundColor}
           backgroundImage={backgroundImage}
           setBackgroundImage={setBackgroundImage}
+          onClose={onClose}
         />
 
         {/* ── Canvas Tab Bar ── */}
@@ -1132,23 +1236,11 @@ export function CanvasEditor() {
               deleteKeyCode={null}
               className="bg-gray-100"
             >
-              <div
-                style={{
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                  backgroundColor: backgroundColor,
-                  backgroundImage: backgroundImage
-                    ? `url(${backgroundImage})`
-                    : undefined,
-                  backgroundSize: "100% 100%",
-                  backgroundRepeat: "no-repeat",
-                  boxShadow: "0 0 20px rgba(0,0,0,0.1)",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  zIndex: 0,
-                  pointerEvents: "none",
-                }}
+              <CanvasBoundaries
+                width={canvasSize.width}
+                height={canvasSize.height}
+                color={backgroundColor}
+                image={backgroundImage}
               />
               {showGrid && (
                 <Background
@@ -1197,4 +1289,3 @@ export function CanvasEditor() {
     </div>
   );
 }
-

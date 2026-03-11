@@ -3,10 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  IoChevronBackOutline,
-  IoChevronForwardOutline,
-} from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
@@ -30,7 +27,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 flex flex-col h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out shadow-sm",
+        "bg-linear-to-b from-slate-50 to-white border-r border-slate-200/60 flex flex-col h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out shadow-sm",
         isExpanded ? "w-64" : "w-[72px]",
       )}
     >
@@ -42,7 +39,7 @@ export function Sidebar() {
             isExpanded ? "opacity-100" : "opacity-0 w-0",
           )}
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
             {appConfig.sidebarInitials}
           </div>
           <span className="font-semibold text-slate-800 whitespace-nowrap">
@@ -77,7 +74,10 @@ export function Sidebar() {
               <NavLink
                 key={item.href}
                 item={item}
-                isActive={pathname === item.href}
+                isActive={
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(item.href))
+                }
                 isExpanded={isExpanded}
               />
             ))}
@@ -95,7 +95,10 @@ export function Sidebar() {
               <NavLink
                 key={item.href}
                 item={item}
-                isActive={pathname === item.href}
+                isActive={
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(item.href))
+                }
                 isExpanded={isExpanded}
               />
             ))}
@@ -113,7 +116,10 @@ export function Sidebar() {
               <NavLink
                 key={item.href}
                 item={item}
-                isActive={pathname === item.href}
+                isActive={
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(item.href))
+                }
                 isExpanded={isExpanded}
               />
             ))}
@@ -129,7 +135,7 @@ export function Sidebar() {
             !isExpanded && "justify-center",
           )}
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+          <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
             JD
           </div>
           {isExpanded && (
@@ -201,4 +207,3 @@ function NavLink({
 
   return content;
 }
-

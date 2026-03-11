@@ -203,4 +203,3 @@ export function AlarmsTab({ alarms, mode, onChange }: AlarmsTabProps) {
     </div>
   );
 }
-

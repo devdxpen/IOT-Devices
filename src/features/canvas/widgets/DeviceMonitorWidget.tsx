@@ -42,4 +42,3 @@ export const DeviceMonitorWidget = memo(function DeviceMonitorWidget({
     </div>
   );
 });
-

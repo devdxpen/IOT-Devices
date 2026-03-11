@@ -73,6 +73,7 @@ interface ToolbarProps {
   setBackgroundColor: (color: string) => void;
   backgroundImage: string;
   setBackgroundImage: (image: string) => void;
+  onClose?: () => void;
 }
 
 export function Toolbar({
@@ -109,6 +110,7 @@ export function Toolbar({
   setBackgroundColor,
   backgroundImage,
   setBackgroundImage,
+  onClose,
 }: ToolbarProps) {
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select" },
@@ -444,12 +446,28 @@ export function Toolbar({
           >
             <Upload size={14} />
           </Button>
-          <Button size="sm" className="h-8 px-3 gap-1" onClick={onSave}>
+          <Button
+            size="sm"
+            className="h-8 px-3 gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={onSave}
+          >
             <Save size={14} /> Save
           </Button>
+          {onClose && (
+            <>
+              <Separator orientation="vertical" className="h-4 mx-1" />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 px-3 gap-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

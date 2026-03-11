@@ -45,4 +45,3 @@ export const NavigationWidget = memo(function NavigationWidget({
     </div>
   );
 });
-

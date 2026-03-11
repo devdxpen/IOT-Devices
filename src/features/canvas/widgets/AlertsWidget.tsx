@@ -106,7 +106,6 @@ export function AlertsWidget({ id }: NodeProps) {
           ref={cardRef}
           className="w-72 p-4 shadow-lg border border-gray-100 bg-white"
         >
-
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Sparkles size={18} className="text-gray-600" />
@@ -166,4 +165,3 @@ export function AlertsWidget({ id }: NodeProps) {
     </ContextMenu>
   );
 }
-

@@ -46,4 +46,3 @@ export const StatusWidget = memo(function StatusWidget({ data }: NodeProps) {
     </div>
   );
 });
-

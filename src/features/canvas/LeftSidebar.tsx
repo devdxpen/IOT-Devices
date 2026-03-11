@@ -340,4 +340,3 @@ export function LeftSidebar() {
     </aside>
   );
 }
-

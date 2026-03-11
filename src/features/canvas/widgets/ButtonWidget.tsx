@@ -18,7 +18,6 @@ export function ButtonWidget({ data, id }: NodeProps) {
 
   return (
     <Card className="w-48 p-4 shadow-lg border-2 border-pink-500 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <MousePointer2 className="text-pink-600" size={20} />
@@ -59,4 +58,3 @@ export function ButtonWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

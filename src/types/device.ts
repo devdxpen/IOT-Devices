@@ -34,12 +34,30 @@ export interface DeviceSummary {
   location: string;
   category: string;
   subCategory: string;
-  users: string[];
+  users: string[] /* keep for backward compatibility or refactor later */;
   userCount: number;
   manufacturer: string;
   model: string;
   firmwareVersion: string;
   macAddress: string;
   icon: string;
+  // New fields for the Devices Monitoring table
+  company: string;
+  assignedUser: {
+    name: string;
+    avatarUrl: string;
+  };
+  lastDataTimestamp: string;
+  alarms: number;
+  data: {
+    t1: number;
+    t2: number;
+    t3: number;
+  };
+  position?: number;
+  // Enhancements
+  isOnline: boolean;
+  ownership: "own" | "shared";
+  tags: string[];
+  colorFlag: "red" | "yellow" | "green" | "none";
 }
-

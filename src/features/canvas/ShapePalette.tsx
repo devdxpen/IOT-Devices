@@ -257,4 +257,3 @@ export function ShapePalette({ onDragStart, onNodeAdd }: ShapePaletteProps) {
     </div>
   );
 }
-

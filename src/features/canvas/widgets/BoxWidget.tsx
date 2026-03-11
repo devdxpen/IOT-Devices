@@ -12,4 +12,3 @@ export const BoxWidget = memo(function BoxWidget({ data }: NodeProps) {
     </div>
   );
 });
-

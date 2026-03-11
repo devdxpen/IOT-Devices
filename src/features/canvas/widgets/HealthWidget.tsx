@@ -85,7 +85,6 @@ export function HealthWidget({ id }: NodeProps) {
           ref={cardRef}
           className="w-56 p-4 shadow-lg border border-gray-100 bg-white"
         >
-
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity size={16} className="text-green-600" />
@@ -152,4 +151,3 @@ export function HealthWidget({ id }: NodeProps) {
     </ContextMenu>
   );
 }
-

@@ -209,7 +209,5 @@ export function LinkedDevicesTab({
         onAdd={handleAddDevices}
       />
     </div>
-    
   );
 }
-

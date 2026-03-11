@@ -147,4 +147,3 @@ export function AlarmWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

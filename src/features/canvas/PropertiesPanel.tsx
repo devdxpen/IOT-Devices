@@ -1661,4 +1661,3 @@ export function PropertiesPanel({
     </div>
   );
 }
-

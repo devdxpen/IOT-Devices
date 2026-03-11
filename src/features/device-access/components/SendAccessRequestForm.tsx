@@ -10,7 +10,9 @@ interface SendAccessRequestFormProps {
   onSendRequest?: (deviceId: string) => void;
 }
 
-export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormProps) {
+export function SendAccessRequestForm({
+  onSendRequest,
+}: SendAccessRequestFormProps) {
   const [deviceId, setDeviceId] = useState("");
   const [deviceFound, setDeviceFound] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
@@ -39,7 +41,9 @@ export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormPr
   return (
     <div className="max-w-xl w-full bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-slate-800">Request Device Access</h3>
+        <h3 className="text-lg font-medium text-slate-800">
+          Request Device Access
+        </h3>
         <p className="text-sm text-slate-500">
           Enter a specific Device ID to send an access request to its owner.
         </p>
@@ -48,14 +52,16 @@ export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormPr
       <div className="space-y-6">
         {/* Device Search */}
         <div className="space-y-2">
-          <Label htmlFor="deviceId" className="text-slate-700 font-medium">Device ID *</Label>
+          <Label htmlFor="deviceId" className="text-slate-700 font-medium">
+            Device ID *
+          </Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <Input 
-                id="deviceId" 
-                placeholder="Ex: DEV-827364" 
-                className="pl-10 uppercase" 
+              <Input
+                id="deviceId"
+                placeholder="Ex: DEV-827364"
+                className="pl-10 uppercase"
                 value={deviceId}
                 onChange={(e) => {
                   setDeviceId(e.target.value);
@@ -65,15 +71,15 @@ export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormPr
                 disabled={requestSent}
               />
             </div>
-            <Button 
-              className="bg-primary text-white hover:bg-primary/90" 
+            <Button
+              className="bg-primary text-white hover:bg-primary/90"
               onClick={handleSearchDevice}
               disabled={!deviceId.trim() || requestSent}
             >
               Search
             </Button>
           </div>
-          
+
           {deviceFound && !requestSent && (
             <p className="text-sm text-green-600 font-medium mt-2">
               ✓ Device found. You can now send an access request.
@@ -86,7 +92,8 @@ export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormPr
                 Access request successfully sent to the device owner!
               </p>
               <p className="text-xs text-green-600 text-center mt-1">
-                You will be notified once they configure your role and accept your request.
+                You will be notified once they configure your role and accept
+                your request.
               </p>
             </div>
           )}
@@ -97,7 +104,7 @@ export function SendAccessRequestForm({ onSendRequest }: SendAccessRequestFormPr
           <Button variant="outline" onClick={handleReset}>
             {requestSent ? "Send Another Request" : "Reset"}
           </Button>
-          <Button 
+          <Button
             className="bg-primary text-white hover:bg-primary/90"
             disabled={!deviceFound || requestSent}
             onClick={handleSendRequest}

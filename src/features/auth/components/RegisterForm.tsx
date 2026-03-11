@@ -20,7 +20,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const individualSchema = z.object({
@@ -31,20 +37,20 @@ const individualSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   country: z.string().min(1, "Country is required"),
   state: z.string().min(1, "State is required"),
-  terms: z.boolean().refine(val => val === true, {
+  terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms",
   }),
-}); 
+});
 
 const companySchema = z.object({
   companyName: z.string().min(2, "Company name is required"),
   contactNumber: z.string().min(10, "Invalid contact number"),
   industryType: z.string().min(1, "Industry type is required"),
   businessAddress: z.string().min(5, "Business address is required").optional(),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  terms: z.boolean().refine(val => val === true, {
+  terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms",
   }),
 });
@@ -123,21 +129,32 @@ export function RegisterForm() {
       </div>
 
       <h2 className="text-xl font-semibold text-slate-400 mb-8">
-        {tab === "individual" ? "Individual User Registration" : "Company Registration"}
+        {tab === "individual"
+          ? "Individual User Registration"
+          : "Company Registration"}
       </h2>
 
       {tab === "individual" ? (
         <Form {...individualForm}>
-          <form onSubmit={individualForm.handleSubmit(onIndividualSubmit, onError)} className="space-y-5">
+          <form
+            onSubmit={individualForm.handleSubmit(onIndividualSubmit, onError)}
+            className="space-y-5"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={individualForm.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">First Name <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-slate-600">
+                      First Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter first name" {...field} className="bg-slate-50 border-slate-200" />
+                      <Input
+                        placeholder="Enter first name"
+                        {...field}
+                        className="bg-slate-50 border-slate-200"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,9 +165,15 @@ export function RegisterForm() {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Last Name <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Last Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter last name" {...field} className="bg-slate-50 border-slate-200" />
+                      <Input
+                        placeholder="Enter last name"
+                        {...field}
+                        className="bg-slate-50 border-slate-200"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -163,9 +186,15 @@ export function RegisterForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-600">Email Id <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel className="text-slate-600">
+                    Email Id <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter email id" {...field} className="bg-slate-50 border-slate-200" />
+                    <Input
+                      placeholder="Enter email id"
+                      {...field}
+                      className="bg-slate-50 border-slate-200"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,7 +207,9 @@ export function RegisterForm() {
                 name="contactNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Contact Number <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Contact Number <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <PhoneInput
                         international
@@ -232,8 +263,13 @@ export function RegisterForm() {
                 name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Country <span className="text-red-500">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className="text-slate-600">
+                      Country <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-500">
                           <SelectValue placeholder="Select country" />
@@ -254,8 +290,13 @@ export function RegisterForm() {
                 name="state"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">State <span className="text-red-500">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className="text-slate-600">
+                      State <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-500">
                           <SelectValue placeholder="Select state" />
@@ -288,7 +329,9 @@ export function RegisterForm() {
                   <div className="space-y-1 leading-none">
                     <FormLabel className="text-sm text-slate-700 font-normal">
                       By continuing, you agree to{" "}
-                      <Link href="#" className="text-[#1DA1F2] hover:underline">LinkedIOT's User Agreement</Link>
+                      <Link href="#" className="text-[#1DA1F2] hover:underline">
+                        LinkedIOT's User Agreement
+                      </Link>
                       , Privacy Policy, and Cookie Policy.
                     </FormLabel>
                   </div>
@@ -296,22 +339,34 @@ export function RegisterForm() {
               )}
             />
 
-            <Button type="submit" className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white">
+            <Button
+              type="submit"
+              className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+            >
               Register
             </Button>
           </form>
         </Form>
       ) : (
         <Form {...companyForm}>
-          <form onSubmit={companyForm.handleSubmit(onCompanySubmit, onError)} className="space-y-5">
+          <form
+            onSubmit={companyForm.handleSubmit(onCompanySubmit, onError)}
+            className="space-y-5"
+          >
             <FormField
               control={companyForm.control}
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-600">Company Name <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel className="text-slate-600">
+                    Company Name <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter company name" {...field} className="bg-slate-50 border-slate-200" />
+                    <Input
+                      placeholder="Enter company name"
+                      {...field}
+                      className="bg-slate-50 border-slate-200"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -319,12 +374,14 @@ export function RegisterForm() {
             />
 
             <div className="grid grid-cols-2 gap-4">
-               <FormField
+              <FormField
                 control={companyForm.control}
                 name="contactNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Contact Number <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Contact Number <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <PhoneInput
                         international
@@ -344,16 +401,25 @@ export function RegisterForm() {
                 name="industryType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Industry Type <span className="text-red-500">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className="text-slate-600">
+                      Industry Type <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-500">
                           <SelectValue placeholder="Select industry" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="it">Information Technology</SelectItem>
-                        <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="it">
+                          Information Technology
+                        </SelectItem>
+                        <SelectItem value="manufacturing">
+                          Manufacturing
+                        </SelectItem>
                         <SelectItem value="healthcare">Healthcare</SelectItem>
                       </SelectContent>
                     </Select>
@@ -369,22 +435,34 @@ export function RegisterForm() {
                 name="businessAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Business address</FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Business address
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter address" {...field} className="bg-slate-50 border-slate-200" />
+                      <Input
+                        placeholder="Enter address"
+                        {...field}
+                        className="bg-slate-50 border-slate-200"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={companyForm.control}
                 name="websiteUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Website URL</FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Website URL
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: https://www.linkedloT.com" {...field} className="bg-slate-50 border-slate-200" />
+                      <Input
+                        placeholder="Ex: https://www.linkedloT.com"
+                        {...field}
+                        className="bg-slate-50 border-slate-200"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -393,20 +471,26 @@ export function RegisterForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <FormField
+              <FormField
                 control={companyForm.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-600">Email Id <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-slate-600">
+                      Email Id <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter email Id" {...field} className="bg-slate-50 border-slate-200" />
+                      <Input
+                        placeholder="Enter email Id"
+                        {...field}
+                        className="bg-slate-50 border-slate-200"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={companyForm.control}
                 name="password"
                 render={({ field }) => (
@@ -439,7 +523,7 @@ export function RegisterForm() {
               />
             </div>
 
-             <FormField
+            <FormField
               control={companyForm.control}
               name="terms"
               render={({ field }) => (
@@ -454,7 +538,9 @@ export function RegisterForm() {
                   <div className="space-y-1 leading-none">
                     <FormLabel className="text-sm text-slate-700 font-normal">
                       By continuing, you agree to{" "}
-                      <Link href="#" className="text-[#1DA1F2] hover:underline">LinkedIOT's User Agreement</Link>
+                      <Link href="#" className="text-[#1DA1F2] hover:underline">
+                        LinkedIOT's User Agreement
+                      </Link>
                       , Privacy Policy, and Cookie Policy.
                     </FormLabel>
                   </div>
@@ -462,7 +548,10 @@ export function RegisterForm() {
               )}
             />
 
-            <Button type="submit" className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white">
+            <Button
+              type="submit"
+              className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+            >
               Register
             </Button>
           </form>
@@ -471,7 +560,10 @@ export function RegisterForm() {
 
       <div className="mt-8 text-center text-sm text-slate-600">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[#1DA1F2] hover:underline inline-flex items-center justify-center gap-1">
+        <Link
+          href="/login"
+          className="font-medium text-[#1DA1F2] hover:underline inline-flex items-center justify-center gap-1"
+        >
           Login <span className="text-lg leading-none mb-[2px]">↗</span>
         </Link>
       </div>

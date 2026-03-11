@@ -30,7 +30,9 @@ type LogInValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
+  const [loginMethod, setLoginMethod] = useState<"password" | "otp">(
+    "password",
+  );
 
   const form = useForm<LogInValues>({
     resolver: zodResolver(loginSchema),
@@ -67,18 +69,27 @@ export function LoginForm() {
       </h2>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-600">Email / Mobile Number <span className="text-red-500">*</span></FormLabel>
+                <FormLabel className="text-slate-600">
+                  Email / Mobile Number <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter email or mobile number"
                     {...field}
-                    className={form.formState.errors.email ? "bg-white border-red-500 focus-visible:ring-red-500" : "bg-slate-50 border-slate-200"}
+                    className={
+                      form.formState.errors.email
+                        ? "bg-white border-red-500 focus-visible:ring-red-500"
+                        : "bg-slate-50 border-slate-200"
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -92,7 +103,9 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-600">Password <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel className="text-slate-600">
+                    Password <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -122,7 +135,7 @@ export function LoginForm() {
 
           <div className="flex items-center justify-between">
             {loginMethod === "password" ? (
-               <FormField
+              <FormField
                 control={form.control}
                 name="rememberMe"
                 render={({ field }) => (
@@ -146,21 +159,29 @@ export function LoginForm() {
               href="/forgot-password"
               className="text-sm font-medium text-[#1DA1F2] hover:underline flex items-center gap-1"
             >
-              Forgot Password? <span className="text-lg leading-none mb-[2px]">↗</span>
+              Forgot Password?{" "}
+              <span className="text-lg leading-none mb-[2px]">↗</span>
             </Link>
           </div>
 
-          <Button type="submit" className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white">
+          <Button
+            type="submit"
+            className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+          >
             {loginMethod === "password" ? "Log In" : "Send OTP"}
           </Button>
 
           <div className="text-center mt-4">
-             <button
+            <button
               type="button"
-              onClick={() => setLoginMethod(loginMethod === "password" ? "otp" : "password")}
+              onClick={() =>
+                setLoginMethod(loginMethod === "password" ? "otp" : "password")
+              }
               className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
-              {loginMethod === "password" ? "Login with OTP instead" : "Login with Password instead"}
+              {loginMethod === "password"
+                ? "Login with OTP instead"
+                : "Login with Password instead"}
             </button>
           </div>
 
@@ -173,7 +194,11 @@ export function LoginForm() {
             </div>
           </div>
 
-          <Button type="button" variant="outline" className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-normal">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-normal"
+          >
             {/* SVG implementation of Google G logo for maximum fidelity */}
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -201,7 +226,10 @@ export function LoginForm() {
 
       <div className="mt-16 text-center text-sm text-slate-600">
         Don't have an account?{" "}
-        <Link href="/register" className="font-medium text-[#1DA1F2] hover:underline inline-flex items-center justify-center gap-1">
+        <Link
+          href="/register"
+          className="font-medium text-[#1DA1F2] hover:underline inline-flex items-center justify-center gap-1"
+        >
           Register <span className="text-lg leading-none mb-[2px]">↗</span>
         </Link>
       </div>

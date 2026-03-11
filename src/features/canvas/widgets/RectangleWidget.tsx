@@ -48,4 +48,3 @@ export const RectangleWidget = memo(function RectangleWidget({
     </div>
   );
 });
-

@@ -25,13 +25,16 @@ export default function AuthLayout({
         </div>
         <div className="relative z-10 mt-auto">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900 mb-4">
-            Manage your IoT devices<br />with ease and scale.
+            Manage your IoT devices
+            <br />
+            with ease and scale.
           </h1>
           <p className="text-lg text-slate-600 max-w-md">
-            The complete platform for monitoring, controlling, and analyzing your connected ecosystem.
+            The complete platform for monitoring, controlling, and analyzing
+            your connected ecosystem.
           </p>
         </div>
-        
+
         {/* Decorative background pattern */}
         <div className="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(#1DA1F2_1px,transparent_1px)] bg-size-[24px_24px]"></div>
       </div>
@@ -39,7 +42,7 @@ export default function AuthLayout({
       {/* Right side - Form */}
       <div className="flex flex-col justify-center px-8 py-12 sm:px-16 lg:px-24 bg-white relative">
         <div className="lg:hidden mb-8">
-           <Link href="/">
+          <Link href="/">
             <Image
               src="/logo.svg"
               alt="LinkedIOT Logo"
@@ -50,9 +53,7 @@ export default function AuthLayout({
             />
           </Link>
         </div>
-        <div className="w-full max-w-md mx-auto">
-          {children}
-        </div>
+        <div className="w-full max-w-md mx-auto">{children}</div>
       </div>
     </div>
   );

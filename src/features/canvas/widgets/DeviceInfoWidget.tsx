@@ -55,4 +55,3 @@ export const DeviceInfoWidget = memo(function DeviceInfoWidget({
     </div>
   );
 });
-

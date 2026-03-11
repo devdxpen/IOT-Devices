@@ -57,7 +57,9 @@ export function useDeviceFilters() {
       DEFAULT_VIEW,
     );
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
 
   return {

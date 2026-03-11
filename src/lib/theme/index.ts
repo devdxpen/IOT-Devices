@@ -2,7 +2,7 @@
  * ============================================
  * THEME EXPORTS
  * ============================================
- * 
+ *
  * Central export for all theme-related functionality.
  */
 
@@ -13,7 +13,7 @@ export {
   type Theme,
   type ThemeContextValue,
   type ThemeProviderProps,
-} from './theme-provider';
+} from "./theme-provider";
 
 export {
   lightTheme,
@@ -22,5 +22,4 @@ export {
   themeToCssVars,
   type ThemeColors,
   type ThemeName,
-} from './theme-config';
-
+} from "./theme-config";

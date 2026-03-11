@@ -78,7 +78,6 @@ export function ClimateWidget({ id }: NodeProps) {
           ref={cardRef}
           className="w-56 p-5 shadow-lg border border-gray-100 bg-white"
         >
-
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2">
@@ -170,4 +169,3 @@ export function ClimateWidget({ id }: NodeProps) {
     </ContextMenu>
   );
 }
-

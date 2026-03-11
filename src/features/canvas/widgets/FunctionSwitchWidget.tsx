@@ -36,4 +36,3 @@ export const FunctionSwitchWidget = memo(function FunctionSwitchWidget({
     </div>
   );
 });
-

@@ -121,4 +121,3 @@ export function ThemeIndicator({ className }: { className?: string }) {
 }
 
 export { ThemeToggle as default };
-

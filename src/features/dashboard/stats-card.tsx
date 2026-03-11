@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
-import type { IconType } from "react-icons";
+import type { LucideIcon } from "lucide-react";
 
 interface StatsCardProps {
-  icon: IconType;
+  icon: LucideIcon;
   label: string;
   value: string;
   iconBgColor?: string;
@@ -20,13 +20,11 @@ export function StatsCard({
     <Card className="bg-white border border-neutral-200 shadow-lg rounded-md">
       <CardContent className="p-6">
         <div className="flex items-center gap-4">
-          {/* Icon Container - 48x48px */}
           <div
             className={`w-12 h-12 rounded-lg flex items-center justify-center ${iconBgColor}`}
           >
             <Icon className={`w-5 h-5 ${iconColor}`} />
           </div>
-          {/* Text Content */}
           <div className="flex flex-col gap-0.5">
             <span className="text-sm text-neutral-500 font-medium leading-tight">
               {label}
@@ -40,4 +38,3 @@ export function StatsCard({
     </Card>
   );
 }
-

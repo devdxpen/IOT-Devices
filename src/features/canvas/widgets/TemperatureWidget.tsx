@@ -106,4 +106,3 @@ export function TemperatureWidget({ data, id }: NodeProps) {
     </Card>
   );
 }
-

@@ -1,11 +1,24 @@
-import { Device } from './device';
+import { Device, DeviceSummary } from "./device";
+
+export interface GroupSummary {
+  id: string;
+  name: string;
+  deviceCount: number;
+  tags: string;
+  lastDataTimestamp: string;
+  validatePeriodStart: string;
+  validatePeriodEnd: string;
+  alarms: number;
+  users: { name: string; avatarUrl: string }[];
+  devices: DeviceSummary[];
+}
 
 export interface DeviceGroup {
   id: string;
   name: string;
   description?: string;
-  icon: 'security' | 'power' | 'environmental' | 'network' | 'general';
-  status: 'active' | 'inactive';
+  icon: "security" | "power" | "environmental" | "network" | "general";
+  status: "active" | "inactive";
   deviceCount: number;
   activeUsers: number;
   inactiveUsers: number;
@@ -35,8 +48,8 @@ export interface GroupUser {
   assignedByRole: string;
   validityStart: string;
   validityEnd: string;
-  status: 'approved' | 'pending' | 'invited';
-  role: 'Viewer' | 'Editor' | 'Admin';
+  status: "approved" | "pending" | "invited";
+  role: "Viewer" | "Editor" | "Admin";
 }
 
 export interface GroupAlarm {
@@ -45,7 +58,6 @@ export interface GroupAlarm {
   tag: string;
   condition: string;
   recipientCount: number;
-  alarmType: 'Critical' | 'Major' | 'Minor';
+  alarmType: "Critical" | "Major" | "Minor";
   status: boolean;
 }
-

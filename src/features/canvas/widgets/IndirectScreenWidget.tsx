@@ -24,4 +24,3 @@ export const IndirectScreenWidget = memo(function IndirectScreenWidget({
     </div>
   );
 });
-

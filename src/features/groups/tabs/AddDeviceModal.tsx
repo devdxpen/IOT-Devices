@@ -198,4 +198,3 @@ export function AddDeviceModal({ open, onClose, onAdd }: AddDeviceModalProps) {
     </Dialog>
   );
 }
-

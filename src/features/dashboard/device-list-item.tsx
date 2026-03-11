@@ -1,22 +1,27 @@
-import { IoEyeOutline } from "react-icons/io5";
+import { Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DeviceSummary } from "@/types";
 import { deviceLocations } from "@/constants/deviceLocations";
 import { DeviceInfoRow } from "./device-info-row";
+import { useRouter } from "next/navigation";
 
 interface DeviceListItemProps {
   device: DeviceSummary;
 }
 
 export function DeviceListItem({ device }: DeviceListItemProps) {
+  const router = useRouter();
   const locationLabel =
     deviceLocations.find((option) => option.value === device.location)?.label ??
     device.location;
 
   return (
-    <Card className="border border-neutral-200 rounded-md shadow-sm hover:shadow-md transition-shadow">
+    <Card
+      onClick={() => router.push(`/device/${device.id}/edit`)}
+      className="border border-neutral-200 rounded-md shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+    >
       <div className="p-4 flex items-start gap-4">
         <div className="w-12 h-12 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-sm shrink-0">
           <img
@@ -40,15 +45,22 @@ export function DeviceListItem({ device }: DeviceListItemProps) {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 shrink-0"
               aria-label="View device details"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/device/${device.id}/edit`);
+              }}
             >
-              <IoEyeOutline className="w-4 h-4 text-neutral-400" />
+              <Eye className="w-4 h-4 text-neutral-400" />
             </Button>
           </div>
 
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-            <DeviceInfoRow label="Serial Number :" value={device.serialNumber} />
+            <DeviceInfoRow
+              label="Serial Number :"
+              value={device.serialNumber}
+            />
             <DeviceInfoRow label="Category :" value={device.category} />
             <DeviceInfoRow label="Sub Category :" value={device.subCategory} />
             <DeviceInfoRow label="Location :" value={locationLabel} />
@@ -56,7 +68,10 @@ export function DeviceListItem({ device }: DeviceListItemProps) {
               label="Manufacturer & Model :"
               value={`${device.manufacturer} ${device.model}`}
             />
-            <DeviceInfoRow label="Firmware Version :" value={device.firmwareVersion} />
+            <DeviceInfoRow
+              label="Firmware Version :"
+              value={device.firmwareVersion}
+            />
             <DeviceInfoRow label="MAC Address :" value={device.macAddress} />
           </div>
         </div>
