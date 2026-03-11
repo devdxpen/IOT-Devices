@@ -11,6 +11,12 @@ export interface GroupSummary {
   alarms: number;
   users: { name: string; avatarUrl: string }[];
   devices: DeviceSummary[];
+  /**
+   * Ownership of this group relative to the current user.
+   * - "own": created/managed by current user or their org
+   * - "shared": shared with the current user (membership group)
+   */
+  ownership: "own" | "shared";
 }
 
 export interface DeviceGroup {

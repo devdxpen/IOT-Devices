@@ -122,6 +122,9 @@ export function GroupRow({ group, isSelected, onSelect }: GroupRowProps) {
           <Button
             variant="outline"
             className="h-8 text-xs font-medium bg-white text-neutral-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+          onClick={() =>
+            window.open(`/dashboard/groups/${group.id}/canvas`, "_blank")
+          }
           >
             View In Canvas
           </Button>

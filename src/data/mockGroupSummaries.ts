@@ -20,17 +20,21 @@ export const mockGroupSummaries: GroupSummary[] = Array.from(
       { name: "Jane Doe", avatarUrl: "/avatars/avatar-5.png" },
     ];
 
+    const ownership: GroupSummary["ownership"] =
+      i % 3 === 0 ? "shared" : "own";
+
     return {
       id: `group-${i}`,
-      name: `Ahmedabad top ${10 + i}`,
+      name: i % 4 === 0 ? `Mumbai DC ${i + 1}` : `Ahmedabad Top ${10 + i}`,
       deviceCount: 3,
-      tags: "Temperature Sensor",
+      tags: i % 2 === 0 ? "Temperature Sensor" : "Power Monitoring",
       lastDataTimestamp: `May 19 2025\n12:30 PM`,
       validatePeriodStart: "May 19 2025",
       validatePeriodEnd: "May 19 2026",
       alarms: (i % 3) + 1,
       users: users.slice(0, (i % 3) + 3), // 3 to 5 users
       devices: deviceSlice, // Nested table data
+      ownership,
     };
   },
 );
