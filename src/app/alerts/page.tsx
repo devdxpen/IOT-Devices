@@ -1,36 +1,36 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ReTooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Bell,
   AlertCircle,
+  Bell,
+  CheckCircle2,
   FlameKindling,
   Thermometer,
-  CheckCircle2,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as ReTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 const monthlyAlarmData = [
   { month: "Jan", critical: 8, high: 12, medium: 16, low: 10 },
@@ -50,8 +50,19 @@ const monthlyAlarmData = [
 // For now alerts follow same pattern; can diverge later when backend data available
 const monthlyAlertData = monthlyAlarmData;
 
+type AlertSeverity = "critical" | "high" | "medium" | "low";
+
+interface AlertItem {
+  id: number;
+  type: AlertSeverity;
+  time: string;
+  ago?: string;
+  title?: string;
+  description?: string;
+}
+
 interface AlertCardProps {
-  type: "critical" | "high" | "medium" | "low";
+  type: AlertSeverity;
   time: string;
   title: string;
   description: string;
@@ -144,36 +155,27 @@ function AlertCard({
 }
 
 export default function AlertsPage() {
-  const initialAlarms = useMemo(
-    () =>
-      [
-        { id: 1, type: "critical" as const, time: "10:40 AM", ago: undefined },
-        { id: 2, type: "critical" as const, time: "10:40 AM", ago: undefined },
-        { id: 3, type: "low" as const, time: "10 days ago", ago: undefined },
-        {
-          id: 4,
-          type: "critical" as const,
-          time: "10:40 AM",
-          ago: "Fixed just now",
-        },
-        { id: 5, type: "critical" as const, time: "10:40 AM", ago: undefined },
-        { id: 6, type: "critical" as const, time: "10:40 AM", ago: undefined },
-      ] as const,
-    [],
-  );
+  const [alarms, setAlarms] = useState<AlertItem[]>([
+    { id: 1, type: "critical", time: "10:40 AM" },
+    { id: 2, type: "critical", time: "10:40 AM" },
+    { id: 3, type: "low", time: "10 days ago" },
+    {
+      id: 4,
+      type: "critical",
+      time: "10:40 AM",
+      ago: "Fixed just now",
+    },
+    { id: 5, type: "critical", time: "10:40 AM" },
+    { id: 6, type: "critical", time: "10:40 AM" },
+  ]);
 
-  const initialAlerts = useMemo(
-    () =>
-      Array.from({ length: 10 }).map((_, idx) => ({
-        id: idx + 1,
-        type: "critical" as const,
-        time: "10:40 AM",
-      })) as const,
-    [],
+  const [alerts, setAlerts] = useState<AlertItem[]>(
+    Array.from({ length: 10 }).map((_, idx) => ({
+      id: idx + 1,
+      type: "critical",
+      time: "10:40 AM",
+    })),
   );
-
-  const [alarms, setAlarms] = useState(initialAlarms);
-  const [alerts, setAlerts] = useState(initialAlerts);
 
   const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [ackScope, setAckScope] = useState<"alarms" | "alerts" | "single">(
@@ -570,9 +572,8 @@ export default function AlertsPage() {
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
               This acknowledgement is recorded per user with timestamp and
-              comment, and can be used later for 21 CFR compliant audit
-              reports. Other operators will still see their own pending
-              alarms/alerts.
+              comment, and can be used later for 21 CFR compliant audit reports.
+              Other operators will still see their own pending alarms/alerts.
             </DialogDescription>
           </DialogHeader>
 
@@ -587,12 +588,11 @@ export default function AlertsPage() {
                 placeholder="E.g. Checked device, temperature back in range."
                 className="min-h-[80px] text-xs"
               />
-              {ackComment.trim().length > 0 &&
-                ackComment.trim().length < 8 && (
-                  <p className="pt-1 text-[10px] text-red-500">
-                    Please enter at least 8 characters for audit comment.
-                  </p>
-                )}
+              {ackComment.trim().length > 0 && ackComment.trim().length < 8 && (
+                <p className="pt-1 text-[10px] text-red-500">
+                  Please enter at least 8 characters for audit comment.
+                </p>
+              )}
             </div>
             <p className="text-[10px] text-slate-400">
               Note: In production, each acknowledge action should capture user
@@ -624,4 +624,3 @@ export default function AlertsPage() {
     </div>
   );
 }
-
