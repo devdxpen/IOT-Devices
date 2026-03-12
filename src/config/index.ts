@@ -1,2 +1,3 @@
 export { appConfig } from "./app";
-export { navItems, type NavItem } from "./navigation";
+export { analyticsAppConfig } from "./appConfig";
+export { type NavItem, navItems } from "./navigation";

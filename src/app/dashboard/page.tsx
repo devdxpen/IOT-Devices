@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import { DashboardOverviewView } from "@/components/widgets/dashboard-overview-view";
 
-export default function DashboardIndex() {
-  // Directly point the dashboard root to the devices sub-page
-  redirect("/dashboard/devices");
+export default function DashboardPage() {
+  return <DashboardOverviewView />;
 }

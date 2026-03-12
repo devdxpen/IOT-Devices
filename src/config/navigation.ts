@@ -1,16 +1,15 @@
 import {
-  IoHomeOutline,
-  IoGridOutline,
-  IoTabletPortraitOutline,
-  IoNotificationsOutline,
-  IoSettingsOutline,
   IoBookOutline,
-  IoHelpCircleOutline,
-  IoHeadsetOutline,
-  IoStatsChartOutline,
   IoCodeSlashOutline,
-  IoPeopleOutline,
+  IoHeadsetOutline,
+  IoHelpCircleOutline,
+  IoHomeOutline,
   IoLayersOutline,
+  IoNotificationsOutline,
+  IoPeopleOutline,
+  IoSettingsOutline,
+  IoStatsChartOutline,
+  IoTabletPortraitOutline,
 } from "react-icons/io5";
 
 export interface NavItem {
@@ -24,7 +23,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { icon: IoHomeOutline, label: "Home", href: "/", section: "main" },
   {
-    icon: IoGridOutline,
+    icon: IoStatsChartOutline,
     label: "Dashboard",
     href: "/dashboard",
     section: "main",
@@ -55,9 +54,21 @@ export const navItems: NavItem[] = [
     section: "main",
   },
   {
+    icon: IoTabletPortraitOutline,
+    label: "Device Analytics",
+    href: "/device-analytics",
+    section: "secondary",
+  },
+  {
+    icon: IoPeopleOutline,
+    label: "User Analytics",
+    href: "/user-analytics",
+    section: "secondary",
+  },
+  {
     icon: IoStatsChartOutline,
-    label: "Reports",
-    href: "/reports",
+    label: "Company Analytics",
+    href: "/company-analytics",
     section: "secondary",
   },
   {
