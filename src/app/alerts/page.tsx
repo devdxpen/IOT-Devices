@@ -156,26 +156,80 @@ function AlertCard({
 
 export default function AlertsPage() {
   const [alarms, setAlarms] = useState<AlertItem[]>([
-    { id: 1, type: "critical", time: "10:40 AM" },
-    { id: 2, type: "critical", time: "10:40 AM" },
-    { id: 3, type: "low", time: "10 days ago" },
+    {
+      id: 1,
+      type: "critical",
+      time: "10:40 AM",
+      title: "HVAC-MAIN-01 (DEV-1001)",
+      description: "Temperature threshold exceeded (>72.5°F)",
+    },
+    {
+      id: 2,
+      type: "critical",
+      time: "10:42 AM",
+      title: "HUMIDITY-LAB-01 (DEV-1004)",
+      description: "Critical humidity levels in Building C lab (>45%)",
+    },
+    {
+      id: 3,
+      type: "medium", // Yellow flag in mock data mapped to medium
+      time: "10:45 AM",
+      title: "VALVE-MAIN-WATER (DEV-1006)",
+      description: "Pressure variation detected (150.2 PSI)",
+    },
     {
       id: 4,
-      type: "critical",
-      time: "10:40 AM",
-      ago: "Fixed just now",
+      type: "high", // Orange flag mapped to high
+      time: "10:50 AM",
+      title: "TEMP-STORE-RM (DEV-1011)",
+      description: "Cold storage warming up (-18.2°F)",
     },
-    { id: 5, type: "critical", time: "10:40 AM" },
-    { id: 6, type: "critical", time: "10:40 AM" },
+    {
+      id: 5,
+      type: "low",
+      time: "Yesterday",
+      title: "CHILLER-ROOM-SENSOR (DEV-1002)",
+      description: "Maintenance calibration due soon",
+    },
+    {
+      id: 6,
+      type: "medium",
+      time: "2 days ago",
+      title: "MOTION-LOBBY-A (DEV-1003)",
+      description: "Unusual motion detected during off-hours",
+    },
   ]);
 
-  const [alerts, setAlerts] = useState<AlertItem[]>(
-    Array.from({ length: 10 }).map((_, idx) => ({
-      id: idx + 1,
+  const [alerts, setAlerts] = useState<AlertItem[]>([
+    {
+      id: 101,
       type: "critical",
-      time: "10:40 AM",
-    })),
-  );
+      time: "09:15 AM",
+      title: "FW-Update Failure",
+      description: "Firmware v2.4.1 deployment failed on HVAC-MAIN-01",
+    },
+    {
+      id: 102,
+      type: "high",
+      time: "08:30 AM",
+      title: "Connectivity Loss",
+      description: "HVAC-ZONE-B-02 (DEV-1008) is currently offline",
+    },
+    {
+      id: 103,
+      type: "medium",
+      time: "07:00 AM",
+      title: "Battery Warning",
+      description: "MOTION-LOBBY-A (DEV-1003) battery at 15%",
+    },
+    {
+      id: 104,
+      type: "low",
+      time: "Yesterday",
+      title: "Sync Status",
+      description: "Database synchronization completed with 0.5s lag",
+    },
+  ]);
 
   const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [ackScope, setAckScope] = useState<"alarms" | "alerts" | "single">(
@@ -225,6 +279,11 @@ export default function AlertsPage() {
     setSelectedId(null);
   };
 
+  const totalAlarms = alarms.length;
+  const criticalAlarms = alarms.filter((a) => a.type === "critical").length;
+  const totalAlerts = alerts.length;
+  const criticalAlerts = alerts.filter((a) => a.type === "critical").length;
+
   return (
     <div className="flex h-full flex-col gap-4">
       {/* Top summary cards */}
@@ -237,7 +296,9 @@ export default function AlertsPage() {
             <div className="text-[11px] font-medium text-slate-500">
               Total Alarms
             </div>
-            <div className="text-lg font-semibold text-slate-900">12</div>
+            <div className="text-lg font-semibold text-slate-900">
+              {totalAlarms}
+            </div>
           </div>
         </Card>
 
@@ -249,7 +310,9 @@ export default function AlertsPage() {
             <div className="text-[11px] font-medium text-slate-500">
               Critical Alarms
             </div>
-            <div className="text-lg font-semibold text-slate-900">10</div>
+            <div className="text-lg font-semibold text-slate-900">
+              {criticalAlarms}
+            </div>
           </div>
         </Card>
 
@@ -261,7 +324,9 @@ export default function AlertsPage() {
             <div className="text-[11px] font-medium text-slate-500">
               Total Alerts
             </div>
-            <div className="text-lg font-semibold text-slate-900">10</div>
+            <div className="text-lg font-semibold text-slate-900">
+              {totalAlerts}
+            </div>
           </div>
         </Card>
 
@@ -273,7 +338,9 @@ export default function AlertsPage() {
             <div className="text-[11px] font-medium text-slate-500">
               Critical Alerts
             </div>
-            <div className="text-lg font-semibold text-slate-900">9</div>
+            <div className="text-lg font-semibold text-slate-900">
+              {criticalAlerts}
+            </div>
           </div>
         </Card>
       </div>
@@ -494,8 +561,8 @@ export default function AlertsPage() {
                   key={alarm.id}
                   type={alarm.type}
                   time={alarm.time}
-                  title="SENSOR-001"
-                  description="Temperature &lt;16"
+                  title={alarm.title || "Sensor Event"}
+                  description={alarm.description || "Reading anomaly detected"}
                   ago={alarm.ago}
                   onAcknowledge={() => openAckSingle(alarm.id)}
                 />
@@ -549,8 +616,8 @@ export default function AlertsPage() {
                   key={alert.id}
                   type={alert.type}
                   time={alert.time}
-                  title="SENSOR-001"
-                  description="Temperature &lt;16"
+                  title={alert.title || "System Alert"}
+                  description={alert.description || "Technical notification"}
                   onAcknowledge={() => openAckSingle(alert.id)}
                 />
               ))

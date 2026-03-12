@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,9 +18,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  DEMO_ACCOUNTS,
+  resolveDemoAccount,
+  saveDemoSession,
+} from "@/lib/auth/demo-auth";
 
 const loginSchema = z.object({
-  email: z.string().min(1, { message: "Email or mobile number is required" }),
+  email: z.string().min(1, { message: "Login ID or email is required" }),
   password: z.string().optional(),
   rememberMe: z.boolean().default(false).optional(),
 });
@@ -46,49 +50,65 @@ export function LoginForm() {
   const router = useRouter();
 
   function onSubmit(data: LogInValues) {
-    console.log("Login data:", data);
     if (loginMethod === "otp") {
       router.push("/verify-otp");
-    } else {
-      router.push("/");
+      return;
     }
-  }
 
-  function onError() {
-    if (loginMethod === "otp") {
-      router.push("/verify-otp");
-    } else {
-      router.push("/");
+    const password = data.password?.trim() ?? "";
+    if (!password) {
+      form.setError("password", { message: "Password is required" });
+      return;
     }
+
+    const account = resolveDemoAccount(data.email, password);
+    if (!account) {
+      form.setError("email", { message: "Invalid login ID or password" });
+      form.setError("password", { message: "Invalid login ID or password" });
+      return;
+    }
+
+    saveDemoSession(account, data.email);
+    router.push(account.redirectPath);
   }
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-semibold text-slate-600 mb-8">
+      <h2 className="mb-8 text-2xl font-semibold text-slate-600">
         Login into LinkedIOT Portal
       </h2>
 
+      <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-slate-700">
+        <p className="mb-2 font-semibold text-blue-700">Demo Credentials</p>
+        <div className="space-y-1">
+          {DEMO_ACCOUNTS.map((account) => (
+            <p key={account.role}>
+              {account.label}:{" "}
+              <span className="font-semibold">{account.loginIds[0]}</span> /{" "}
+              <span className="font-semibold">{account.password}</span>
+            </p>
+          ))}
+        </div>
+      </div>
+
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit, onError)}
-          className="space-y-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-slate-600">
-                  Email / Mobile Number <span className="text-red-500">*</span>
+                  Login ID / Email <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter email or mobile number"
+                    placeholder="Enter admin/customer login ID"
                     {...field}
                     className={
                       form.formState.errors.email
-                        ? "bg-white border-red-500 focus-visible:ring-red-500"
-                        : "bg-slate-50 border-slate-200"
+                        ? "border-red-500 bg-white focus-visible:ring-red-500"
+                        : "border-slate-200 bg-slate-50"
                     }
                   />
                 </FormControl>
@@ -110,14 +130,14 @@ export function LoginForm() {
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="***********"
-                        className="bg-slate-50 border-slate-200 pr-10"
+                        placeholder="Enter your password"
+                        className="border-slate-200 bg-slate-50 pr-10"
                         {...field}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
                       >
                         {showPassword ? (
                           <EyeOff className="h-5 w-5" />
@@ -139,7 +159,7 @@ export function LoginForm() {
                 control={form.control}
                 name="rememberMe"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                  <FormItem className="flex flex-row items-center space-y-0 space-x-3">
                     <FormControl>
                       <Switch
                         checked={field.value}
@@ -153,31 +173,30 @@ export function LoginForm() {
                 )}
               />
             ) : (
-              <div></div>
+              <div />
             )}
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-[#1DA1F2] hover:underline flex items-center gap-1"
+              className="flex items-center gap-1 text-sm font-medium text-[#1DA1F2] hover:underline"
             >
-              Forgot Password?{" "}
-              <span className="text-lg leading-none mb-[2px]">↗</span>
+              Forgot Password?
             </Link>
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+            className="w-full bg-[#1DA1F2] text-white hover:bg-[#1A91DA]"
           >
             {loginMethod === "password" ? "Log In" : "Send OTP"}
           </Button>
 
-          <div className="text-center mt-4">
+          <div className="mt-4 text-center">
             <button
               type="button"
               onClick={() =>
                 setLoginMethod(loginMethod === "password" ? "otp" : "password")
               }
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
             >
               {loginMethod === "password"
                 ? "Login with OTP instead"
@@ -197,10 +216,10 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-normal"
+            className="w-full border-slate-200 bg-slate-50 font-normal text-slate-700 hover:bg-slate-100"
           >
-            {/* SVG implementation of Google G logo for maximum fidelity */}
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+              <title>Google</title>
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -225,12 +244,12 @@ export function LoginForm() {
       </Form>
 
       <div className="mt-16 text-center text-sm text-slate-600">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link
           href="/register"
-          className="font-medium text-[#1DA1F2] hover:underline inline-flex items-center justify-center gap-1"
+          className="inline-flex items-center justify-center gap-1 font-medium text-[#1DA1F2] hover:underline"
         >
-          Register <span className="text-lg leading-none mb-[2px]">↗</span>
+          Register
         </Link>
       </div>
     </div>

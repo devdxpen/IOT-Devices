@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { Toaster } from "sonner";
+import { AppShell } from "@/components/layout/app-shell";
+import { appConfig } from "@/config/app";
+import { UserPlanProvider } from "@/contexts/UserPlanContext";
 import { ThemeProvider } from "@/lib/theme";
 import { Providers } from "./providers";
-import { appConfig } from "@/config/app";
-import { Toaster } from "sonner";
-import { UserPlanProvider } from "@/contexts/UserPlanContext";
 
 /**
  * Font Configuration
@@ -39,20 +38,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${nunito.variable} bg-background text-foreground grid grid-cols-[auto_1fr] h-screen overflow-hidden relative`}
-      >
+      <body className={`${nunito.variable} bg-background text-foreground`}>
         {/* ThemeProvider enables theme switching: light, dark, or system preference */}
         <ThemeProvider defaultTheme="system">
           <UserPlanProvider>
             <Providers>
-              <Sidebar />
-              <div className="h-screen w-full flex flex-col">
-                <Header />
-                <main className="px-6 pt-6 pb-6 h-[calc(100vh-64px)] flex flex-col">
-                  {children}
-                </main>
-              </div>
+              <AppShell>{children}</AppShell>
             </Providers>
           </UserPlanProvider>
         </ThemeProvider>
