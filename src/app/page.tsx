@@ -1,9 +1,11 @@
 import { ArrowRight, ExternalLink, MapPin, QrCode } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockDeviceSummaries } from "@/data/mockDeviceSummaries";
 import { DeviceAccessManagement } from "@/features/device-access/components/DeviceAccessManagement";
+import { HomeAnalyticsSection } from "@/features/home/components/home-analytics-section";
 import { fetchTemplates } from "@/lib/mock-api/templates";
 
 const appLinks = {
@@ -311,6 +313,14 @@ export default async function HomePage() {
               </div>
             </div>
           </section>
+
+          <Suspense
+            fallback={
+              <div className="h-[400px] animate-pulse bg-slate-100 rounded-xl" />
+            }
+          >
+            <HomeAnalyticsSection />
+          </Suspense>
         </div>
       </TabsContent>
 

@@ -10,8 +10,10 @@ import {
   IoFlashOutline,
   IoHardwareChipOutline,
 } from "react-icons/io5";
+import { useState } from "react";
 import { KpiGrid } from "@/components/cards/kpi-grid";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
+import { ChartFilterGroup } from "@/components/filters/chart-filter-group";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";
 import {
   AnalyticsEmptyState,
@@ -22,10 +24,11 @@ import {
   AnalyticsDataTable,
   type TableColumn,
 } from "@/components/tables/analytics-data-table";
-import { formatCompanyLastActive } from "@/data/mockData";
-import { useAnalyticsFilters } from "@/hooks/use-analytics-filters";
+import { defaultAnalyticsFilters, formatCompanyLastActive } from "@/data/mockData";
+import { useAnalyticsFilterOptions } from "@/hooks/use-analytics-filter-options";
+import { useDemoSession } from "@/hooks/use-demo-session";
 import { fetchCompanyAnalytics } from "@/lib/api";
-import type { CompanyTableRow } from "@/types/models";
+import type { AnalyticsFilters, CompanyTableRow } from "@/types/models";
 
 const iconMap = {
   "total-companies": IoBusinessOutline,
@@ -73,30 +76,104 @@ const columns: TableColumn<CompanyTableRow>[] = [
 ];
 
 export function CompanyAnalyticsView() {
-  const { filters, resetFilters } = useAnalyticsFilters((state) => ({
-    filters: state.filters,
-    resetFilters: state.resetFilters,
-  }));
+  const session = useDemoSession();
+  const filterOptionsQuery = useAnalyticsFilterOptions();
+  const filterOptions = filterOptionsQuery.data;
+  const canManageCompany = session?.role === "company";
+  const showCompanyFilters = session?.role !== "iot_user";
 
-  const query = useQuery({
-    queryKey: ["analytics", "company", filters],
-    queryFn: () => fetchCompanyAnalytics(filters),
+  const defaultSummaryFilters = defaultAnalyticsFilters;
+  const defaultGrowthFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "year",
+  };
+  const defaultUsageFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "month",
+  };
+  const defaultPlanFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+  };
+  const defaultIndustryFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+  };
+  const defaultTopActiveFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+  };
+
+  const [growthFilters, setGrowthFilters] = useState<AnalyticsFilters>(
+    () => defaultGrowthFilters,
+  );
+  const [usageFilters, setUsageFilters] = useState<AnalyticsFilters>(
+    () => defaultUsageFilters,
+  );
+  const [planFilters, setPlanFilters] = useState<AnalyticsFilters>(
+    () => defaultPlanFilters,
+  );
+  const [industryFilters, setIndustryFilters] = useState<AnalyticsFilters>(
+    () => defaultIndustryFilters,
+  );
+  const [topActiveFilters, setTopActiveFilters] = useState<AnalyticsFilters>(
+    () => defaultTopActiveFilters,
+  );
+
+  const resetAllCharts = () => {
+    setGrowthFilters(defaultGrowthFilters);
+    setUsageFilters(defaultUsageFilters);
+    setPlanFilters(defaultPlanFilters);
+    setIndustryFilters(defaultIndustryFilters);
+    setTopActiveFilters(defaultTopActiveFilters);
+  };
+
+  const summaryQuery = useQuery({
+    queryKey: ["analytics", "company", "summary", defaultSummaryFilters],
+    queryFn: () => fetchCompanyAnalytics(defaultSummaryFilters),
+  });
+
+  const growthQuery = useQuery({
+    queryKey: ["analytics", "company", "growth", growthFilters],
+    queryFn: () => fetchCompanyAnalytics(growthFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const usageQuery = useQuery({
+    queryKey: ["analytics", "company", "usage", usageFilters],
+    queryFn: () => fetchCompanyAnalytics(usageFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const planQuery = useQuery({
+    queryKey: ["analytics", "company", "plan-distribution", planFilters],
+    queryFn: () => fetchCompanyAnalytics(planFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const industryQuery = useQuery({
+    queryKey: ["analytics", "company", "industry", industryFilters],
+    queryFn: () => fetchCompanyAnalytics(industryFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const topActiveQuery = useQuery({
+    queryKey: ["analytics", "company", "top-active", topActiveFilters],
+    queryFn: () => fetchCompanyAnalytics(topActiveFilters),
+    placeholderData: summaryQuery.data,
   });
 
   const growthOptions: ApexOptions = {
     chart: { type: "line" },
-    xaxis: { categories: query.data?.companyGrowthTrend.categories },
+    xaxis: { categories: growthQuery.data?.companyGrowthTrend.categories },
   };
 
   const planOptions: ApexOptions = {
-    labels: query.data?.subscriptionPlanDistribution.labels,
+    labels: planQuery.data?.subscriptionPlanDistribution.labels,
     legend: { position: "bottom" },
     stroke: { width: 0 },
   };
 
   const usageOptions: ApexOptions = {
     chart: { type: "area" },
-    xaxis: { categories: query.data?.dataUsageTrend.categories },
+    xaxis: { categories: usageQuery.data?.dataUsageTrend.categories },
     yaxis: { labels: { formatter: (value) => `${Math.round(value)} GB` } },
     fill: {
       type: "gradient",
@@ -106,13 +183,13 @@ export function CompanyAnalyticsView() {
 
   const industryOptions: ApexOptions = {
     chart: { type: "bar" },
-    xaxis: { categories: query.data?.companiesByIndustry.categories },
+    xaxis: { categories: industryQuery.data?.companiesByIndustry.categories },
     plotOptions: { bar: { borderRadius: 4, columnWidth: "48%" } },
   };
 
   const topActiveOptions: ApexOptions = {
     chart: { type: "bar" },
-    xaxis: { categories: query.data?.topActiveCompanies.categories },
+    xaxis: { categories: topActiveQuery.data?.topActiveCompanies.categories },
     yaxis: { labels: { formatter: (value) => `${value.toFixed(0)}%` } },
     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
   };
@@ -122,20 +199,22 @@ export function CompanyAnalyticsView() {
       title="Company Analytics"
       description="Company-level growth, subscription mix, usage trends, and operational health."
     >
-      {query.isLoading ? (
+      {summaryQuery.isLoading ? (
         <AnalyticsLoadingState />
-      ) : query.isError ? (
+      ) : summaryQuery.isError ? (
         <AnalyticsErrorState
           title="Unable to load company analytics"
           description={
-            query.error instanceof Error ? query.error.message : "Unknown error"
+            summaryQuery.error instanceof Error
+              ? summaryQuery.error.message
+              : "Unknown error"
           }
-          onRetry={() => query.refetch()}
+          onRetry={() => summaryQuery.refetch()}
         />
-      ) : query.data?.companies.length ? (
+      ) : summaryQuery.data?.companies.length ? (
         <>
           <KpiGrid
-            metrics={query.data.kpis}
+            metrics={summaryQuery.data.kpis}
             iconMap={iconMap}
             columnsClassName="grid-cols-1 sm:grid-cols-2 xl:grid-cols-6"
           />
@@ -145,15 +224,41 @@ export function CompanyAnalyticsView() {
               className="xl:col-span-6"
               title="Company Growth Trend"
               type="line"
-              series={query.data.companyGrowthTrend.series}
+              series={growthQuery.data?.companyGrowthTrend.series ?? []}
               options={growthOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={growthFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "location"]
+                      : ["dateRange", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setGrowthFilters}
+                  onReset={() => setGrowthFilters(defaultGrowthFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-6"
               title="Data Usage Trend"
               type="area"
-              series={query.data.dataUsageTrend.series}
+              series={usageQuery.data?.dataUsageTrend.series ?? []}
               options={usageOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={usageFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "location"]
+                      : ["dateRange", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setUsageFilters}
+                  onReset={() => setUsageFilters(defaultUsageFilters)}
+                />
+              }
             />
           </section>
 
@@ -162,22 +267,63 @@ export function CompanyAnalyticsView() {
               className="xl:col-span-4"
               title="Subscription Plan Distribution"
               type="pie"
-              series={query.data.subscriptionPlanDistribution.series}
+              series={
+                planQuery.data?.subscriptionPlanDistribution.series ?? []
+              }
               options={planOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={planFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["companyId", "location"]
+                      : ["location"]
+                  }
+                  options={filterOptions}
+                  onChange={setPlanFilters}
+                  onReset={() => setPlanFilters(defaultPlanFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-4"
               title="Companies by Industry"
               type="bar"
-              series={query.data.companiesByIndustry.series}
+              series={industryQuery.data?.companiesByIndustry.series ?? []}
               options={industryOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={industryFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["companyId", "location", "subscriptionPlan"]
+                      : ["location", "subscriptionPlan"]
+                  }
+                  options={filterOptions}
+                  onChange={setIndustryFilters}
+                  onReset={() => setIndustryFilters(defaultIndustryFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-4"
               title="Top Active Companies"
               type="bar"
-              series={query.data.topActiveCompanies.series}
+              series={topActiveQuery.data?.topActiveCompanies.series ?? []}
               options={topActiveOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={topActiveFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["companyId", "location", "subscriptionPlan"]
+                      : ["location", "subscriptionPlan"]
+                  }
+                  options={filterOptions}
+                  onChange={setTopActiveFilters}
+                  onReset={() => setTopActiveFilters(defaultTopActiveFilters)}
+                />
+              }
             />
           </section>
 
@@ -186,21 +332,25 @@ export function CompanyAnalyticsView() {
               Company Details
             </h2>
             <AnalyticsDataTable
-              rows={query.data.companies}
+              rows={summaryQuery.data.companies}
               columns={columns}
-              rowActions={() => [
-                { label: "View" },
-                { label: "Edit" },
-                { label: "Delete", destructive: true },
-              ]}
+              rowActions={() =>
+                canManageCompany
+                  ? [
+                      { label: "View" },
+                      { label: "Edit" },
+                      { label: "Delete", destructive: true },
+                    ]
+                  : [{ label: "View" }]
+              }
             />
           </section>
         </>
       ) : (
         <AnalyticsEmptyState
           title="No companies available"
-          description="No company analytics match the selected filters. Reset filters to restore data."
-          onReset={resetFilters}
+          description="No company analytics match the current selections. Reset chart filters to restore data."
+          onReset={resetAllCharts}
         />
       )}
     </AnalyticsShell>

@@ -162,7 +162,16 @@ export function Sidebar() {
     return <AdminSidebar pathname={pathname} />;
   }
 
-  return <CustomerSidebar pathname={pathname} />;
+  return (
+    <CustomerSidebar
+      pathname={pathname}
+      role={
+        session?.role === "company" || session?.role === "iot_user"
+          ? session.role
+          : undefined
+      }
+    />
+  );
 }
 
 function AdminSidebar({ pathname }: { pathname: string }) {
@@ -254,13 +263,29 @@ function AdminSidebar({ pathname }: { pathname: string }) {
   );
 }
 
-function CustomerSidebar({ pathname }: { pathname: string }) {
+function CustomerSidebar({
+  pathname,
+  role,
+}: {
+  pathname: string;
+  role?: "company" | "iot_user";
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const hiddenForIoTUser = new Set([
+    "/alerts",
+    "/device",
+    "/groups",
+    "/template-management",
+  ]);
+  const visibleItems =
+    role === "iot_user"
+      ? navItems.filter((item) => !hiddenForIoTUser.has(item.href))
+      : navItems;
 
   const sections = {
-    main: navItems.filter((item) => item.section === "main"),
-    secondary: navItems.filter((item) => item.section === "secondary"),
-    support: navItems.filter((item) => item.section === "support"),
+    main: visibleItems.filter((item) => item.section === "main"),
+    secondary: visibleItems.filter((item) => item.section === "secondary"),
+    support: visibleItems.filter((item) => item.section === "support"),
   };
 
   return (

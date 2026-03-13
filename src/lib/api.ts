@@ -1,10 +1,11 @@
 import {
-  analyticsFilterOptions,
+  buildAnalyticsFilterOptions,
   buildCompanyAnalyticsData,
   buildDashboardOverviewData,
   buildDeviceAnalyticsData,
   buildUserAnalyticsData,
 } from "@/data/mockData";
+import { readDemoSession } from "@/lib/auth/demo-auth";
 import type {
   AnalyticsFilterOptions,
   AnalyticsFilters,
@@ -22,30 +23,43 @@ function withDelay<T>(result: T) {
   });
 }
 
+function requireSession() {
+  const session = readDemoSession();
+  if (!session) {
+    throw new Error("Please login to access analytics.");
+  }
+  return session;
+}
+
 export async function fetchAnalyticsFilterOptions(): Promise<AnalyticsFilterOptions> {
-  return withDelay(analyticsFilterOptions);
+  const session = requireSession();
+  return withDelay(buildAnalyticsFilterOptions(session));
 }
 
 export async function fetchOverviewAnalytics(
   filters: AnalyticsFilters,
 ): Promise<DashboardOverviewData> {
-  return withDelay(buildDashboardOverviewData(filters));
+  const session = requireSession();
+  return withDelay(buildDashboardOverviewData(filters, session));
 }
 
 export async function fetchDeviceAnalytics(
   filters: AnalyticsFilters,
 ): Promise<DeviceAnalyticsData> {
-  return withDelay(buildDeviceAnalyticsData(filters));
+  const session = requireSession();
+  return withDelay(buildDeviceAnalyticsData(filters, session));
 }
 
 export async function fetchUserAnalytics(
   filters: AnalyticsFilters,
 ): Promise<UserAnalyticsData> {
-  return withDelay(buildUserAnalyticsData(filters));
+  const session = requireSession();
+  return withDelay(buildUserAnalyticsData(filters, session));
 }
 
 export async function fetchCompanyAnalytics(
   filters: AnalyticsFilters,
 ): Promise<CompanyAnalyticsData> {
-  return withDelay(buildCompanyAnalyticsData(filters));
+  const session = requireSession();
+  return withDelay(buildCompanyAnalyticsData(filters, session));
 }

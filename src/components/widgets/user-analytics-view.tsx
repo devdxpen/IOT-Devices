@@ -9,8 +9,10 @@ import {
   IoPersonAddOutline,
   IoTimerOutline,
 } from "react-icons/io5";
+import { useState } from "react";
 import { KpiGrid } from "@/components/cards/kpi-grid";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
+import { ChartFilterGroup } from "@/components/filters/chart-filter-group";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";
 import {
   AnalyticsEmptyState,
@@ -21,10 +23,12 @@ import {
   AnalyticsDataTable,
   type TableColumn,
 } from "@/components/tables/analytics-data-table";
-import { useAnalyticsFilters } from "@/hooks/use-analytics-filters";
+import { defaultAnalyticsFilters } from "@/data/mockData";
+import { useAnalyticsFilterOptions } from "@/hooks/use-analytics-filter-options";
+import { useDemoSession } from "@/hooks/use-demo-session";
 import { fetchUserAnalytics } from "@/lib/api";
 import { formatDate } from "@/lib/helpers";
-import type { UserTableRow } from "@/types/models";
+import type { AnalyticsFilters, UserTableRow } from "@/types/models";
 
 const iconMap = {
   "total-users": IoPeopleOutline,
@@ -75,25 +79,88 @@ const columns: TableColumn<UserTableRow>[] = [
 ];
 
 export function UserAnalyticsView() {
-  const { filters, resetFilters } = useAnalyticsFilters((state) => ({
-    filters: state.filters,
-    resetFilters: state.resetFilters,
-  }));
+  const session = useDemoSession();
+  const filterOptionsQuery = useAnalyticsFilterOptions();
+  const filterOptions = filterOptionsQuery.data;
+  const canManageUsers = session?.role === "company";
+  const showCompanyFilters = session?.role !== "iot_user";
 
-  const query = useQuery({
-    queryKey: ["analytics", "user", filters],
-    queryFn: () => fetchUserAnalytics(filters),
+  const defaultSummaryFilters = defaultAnalyticsFilters;
+  const defaultRegistrationsFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "week",
+  };
+  const defaultRetentionFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "month",
+  };
+  const defaultUptimeFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "month",
+  };
+  const defaultFeatureUsageFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "month",
+  };
+
+  const [registrationsFilters, setRegistrationsFilters] =
+    useState<AnalyticsFilters>(() => defaultRegistrationsFilters);
+  const [retentionFilters, setRetentionFilters] = useState<AnalyticsFilters>(
+    () => defaultRetentionFilters,
+  );
+  const [uptimeFilters, setUptimeFilters] = useState<AnalyticsFilters>(
+    () => defaultUptimeFilters,
+  );
+  const [featureUsageFilters, setFeatureUsageFilters] =
+    useState<AnalyticsFilters>(() => defaultFeatureUsageFilters);
+
+  const resetAllCharts = () => {
+    setRegistrationsFilters(defaultRegistrationsFilters);
+    setRetentionFilters(defaultRetentionFilters);
+    setUptimeFilters(defaultUptimeFilters);
+    setFeatureUsageFilters(defaultFeatureUsageFilters);
+  };
+
+  const summaryQuery = useQuery({
+    queryKey: ["analytics", "user", "summary", defaultSummaryFilters],
+    queryFn: () => fetchUserAnalytics(defaultSummaryFilters),
+  });
+
+  const registrationsQuery = useQuery({
+    queryKey: ["analytics", "user", "registrations", registrationsFilters],
+    queryFn: () => fetchUserAnalytics(registrationsFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const retentionQuery = useQuery({
+    queryKey: ["analytics", "user", "retention", retentionFilters],
+    queryFn: () => fetchUserAnalytics(retentionFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const uptimeQuery = useQuery({
+    queryKey: ["analytics", "user", "uptime", uptimeFilters],
+    queryFn: () => fetchUserAnalytics(uptimeFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const featureUsageQuery = useQuery({
+    queryKey: ["analytics", "user", "feature-usage", featureUsageFilters],
+    queryFn: () => fetchUserAnalytics(featureUsageFilters),
+    placeholderData: summaryQuery.data,
   });
 
   const registrationsOptions: ApexOptions = {
     chart: { type: "line" },
-    xaxis: { categories: query.data?.newRegistrationsTrend.categories },
+    xaxis: {
+      categories: registrationsQuery.data?.newRegistrationsTrend.categories,
+    },
     yaxis: { labels: { formatter: (value) => `${Math.round(value)}` } },
   };
 
   const retentionOptions: ApexOptions = {
     chart: { type: "area" },
-    xaxis: { categories: query.data?.retentionRateTrend.categories },
+    xaxis: { categories: retentionQuery.data?.retentionRateTrend.categories },
     yaxis: { labels: { formatter: (value) => `${value.toFixed(0)}%` } },
     fill: {
       type: "gradient",
@@ -103,13 +170,13 @@ export function UserAnalyticsView() {
 
   const uptimeOptions: ApexOptions = {
     chart: { type: "line" },
-    xaxis: { categories: query.data?.averageUptimeTrend.categories },
+    xaxis: { categories: uptimeQuery.data?.averageUptimeTrend.categories },
     yaxis: { labels: { formatter: (value) => `${value.toFixed(0)}%` } },
   };
 
   const featureUsageOptions: ApexOptions = {
     chart: { type: "bar" },
-    xaxis: { categories: query.data?.featureUsage.categories },
+    xaxis: { categories: featureUsageQuery.data?.featureUsage.categories },
     yaxis: { labels: { formatter: (value) => `${value.toFixed(0)}%` } },
     plotOptions: { bar: { borderRadius: 4, columnWidth: "42%" } },
   };
@@ -119,20 +186,22 @@ export function UserAnalyticsView() {
       title="User Analytics"
       description="User growth, retention, uptime, feature usage, and subscription behavior insights."
     >
-      {query.isLoading ? (
+      {summaryQuery.isLoading ? (
         <AnalyticsLoadingState />
-      ) : query.isError ? (
+      ) : summaryQuery.isError ? (
         <AnalyticsErrorState
           title="Unable to load user analytics"
           description={
-            query.error instanceof Error ? query.error.message : "Unknown error"
+            summaryQuery.error instanceof Error
+              ? summaryQuery.error.message
+              : "Unknown error"
           }
-          onRetry={() => query.refetch()}
+          onRetry={() => summaryQuery.refetch()}
         />
-      ) : query.data?.topUsers.length ? (
+      ) : summaryQuery.data?.topUsers.length ? (
         <>
           <KpiGrid
-            metrics={query.data.kpis}
+            metrics={summaryQuery.data.kpis}
             iconMap={iconMap}
             columnsClassName="grid-cols-1 sm:grid-cols-2 xl:grid-cols-5"
           />
@@ -142,15 +211,45 @@ export function UserAnalyticsView() {
               className="xl:col-span-6"
               title="New User Registrations Over Time"
               type="line"
-              series={query.data.newRegistrationsTrend.series}
+              series={
+                registrationsQuery.data?.newRegistrationsTrend.series ?? []
+              }
               options={registrationsOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={registrationsFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "subscriptionPlan"]
+                      : ["dateRange", "subscriptionPlan"]
+                  }
+                  options={filterOptions}
+                  onChange={setRegistrationsFilters}
+                  onReset={() =>
+                    setRegistrationsFilters(defaultRegistrationsFilters)
+                  }
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-6"
               title="User Retention Rate"
               type="area"
-              series={query.data.retentionRateTrend.series}
+              series={retentionQuery.data?.retentionRateTrend.series ?? []}
               options={retentionOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={retentionFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "subscriptionPlan"]
+                      : ["dateRange", "subscriptionPlan"]
+                  }
+                  options={filterOptions}
+                  onChange={setRetentionFilters}
+                  onReset={() => setRetentionFilters(defaultRetentionFilters)}
+                />
+              }
             />
           </section>
 
@@ -159,16 +258,44 @@ export function UserAnalyticsView() {
               className="xl:col-span-6"
               title="Average User Uptime"
               type="line"
-              series={query.data.averageUptimeTrend.series}
+              series={uptimeQuery.data?.averageUptimeTrend.series ?? []}
               options={uptimeOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={uptimeFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "location"]
+                      : ["dateRange", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setUptimeFilters}
+                  onReset={() => setUptimeFilters(defaultUptimeFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-6"
               title="Feature Usage Analytics"
               type="bar"
-              series={query.data.featureUsage.series}
+              series={featureUsageQuery.data?.featureUsage.series ?? []}
               options={featureUsageOptions}
               description="Device Monitoring, Reports, Alerts, and Dashboard usage"
+              actions={
+                <ChartFilterGroup
+                  filters={featureUsageFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "subscriptionPlan"]
+                      : ["dateRange", "subscriptionPlan"]
+                  }
+                  options={filterOptions}
+                  onChange={setFeatureUsageFilters}
+                  onReset={() =>
+                    setFeatureUsageFilters(defaultFeatureUsageFilters)
+                  }
+                />
+              }
             />
           </section>
 
@@ -177,21 +304,25 @@ export function UserAnalyticsView() {
               Top 5 Users
             </h2>
             <AnalyticsDataTable
-              rows={query.data.topUsers}
+              rows={summaryQuery.data.topUsers}
               columns={columns}
-              rowActions={() => [
-                { label: "View" },
-                { label: "Edit" },
-                { label: "Delete", destructive: true },
-              ]}
+              rowActions={() =>
+                canManageUsers
+                  ? [
+                      { label: "View" },
+                      { label: "Edit" },
+                      { label: "Delete", destructive: true },
+                    ]
+                  : [{ label: "View" }]
+              }
             />
           </section>
         </>
       ) : (
         <AnalyticsEmptyState
           title="No users available"
-          description="No user analytics match the selected filters. Reset filters to restore results."
-          onReset={resetFilters}
+          description="No user analytics match the current selections. Reset chart filters to restore results."
+          onReset={resetAllCharts}
         />
       )}
     </AnalyticsShell>

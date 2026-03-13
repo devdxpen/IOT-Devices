@@ -8,14 +8,14 @@ import {
 } from "@/lib/auth/demo-auth";
 
 export function useDemoSession() {
-  const [session, setSession] = useState<StoredSession | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(() =>
+    readDemoSession(),
+  );
 
   useEffect(() => {
     const syncSession = () => {
       setSession(readDemoSession());
     };
-
-    syncSession();
 
     window.addEventListener("storage", syncSession);
     window.addEventListener(AUTH_SESSION_EVENT, syncSession as EventListener);

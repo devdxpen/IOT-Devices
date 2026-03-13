@@ -1,5 +1,4 @@
-import { mockDeviceSummaries } from "@/data/mockDeviceSummaries";
-import type { DeviceSummary } from "@/types";
+import { snapshotApi } from "@/lib/mock-api/access-control";
 
 export type AnalyticsFunctionality =
   | "Monitoring"
@@ -33,8 +32,10 @@ interface MetricSummary {
 }
 
 interface UserStat {
+  id: string;
   name: string;
   avatarUrl: string;
+  company: string;
   devices: number;
   onlineDevices: number;
   avgUptime: number;
@@ -96,7 +97,10 @@ interface CompanyTableRow {
 export interface UserDashboardDerivedData {
   metrics: MetricSummary;
   uptimeDistribution: Array<{ name: string; value: number; color: string }>;
-  retentionByUser: Array<{ label: string; retentionHours: number }>;
+  retentionByUserMonthlyStacked: {
+    months: string[];
+    series: Array<{ name: string; data: number[] }>;
+  };
   functionalityUsageByUser: Array<
     {
       label: string;
@@ -116,7 +120,10 @@ export interface CompanyDashboardDerivedData {
   avgRetentionMinutes: number;
   avgUsagePercent: number;
   usersUnderCompanySplit: Array<{ name: string; value: number; color: string }>;
-  retentionByCompany: Array<{ label: string; retentionHours: number }>;
+  retentionByCompanyMonthlyStacked: {
+    months: string[];
+    series: Array<{ name: string; data: number[] }>;
+  };
   usageByCompany: Array<{ label: string; usage: number }>;
   topCompanies: TopCompanyEntry[];
   devicesByFunctionality: Array<{ name: string; value: number; color: string }>;
@@ -164,6 +171,31 @@ export interface DeviceDashboardDerivedData {
   topDeviceTableRows: DeviceTableRow[];
 }
 
+interface DerivedDevice {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  serialNumber: string;
+  manufacturer: string;
+  model: string;
+  firmwareVersion: string;
+  macAddress: string;
+  location: string;
+  company: string;
+  companyId: string;
+  ownerUserId: string;
+  ownerName: string;
+  userCount: number;
+  isOnline: boolean;
+  alarms: number;
+  status: "active" | "inactive" | "faulty" | "disabled";
+  bandwidthMbps: number;
+  dataUsageGb: number;
+  createdAt: string;
+  functionality: FunctionalityType;
+}
+
 const functionalityOrder: FunctionalityType[] = [
   "Monitoring",
   "Security",
@@ -172,6 +204,23 @@ const functionalityOrder: FunctionalityType[] = [
 ];
 
 const piePalette = ["#1d9bf0", "#69b5ea", "#a8d2f3", "#d7e9f8"];
+const monthFactors = [
+  0.88, 0.94, 0.9, 1.02, 1.08, 1.05, 0.78, 0.8, 0.83, 0.92, 0.85, 0.79,
+];
+const monthLabels = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 export const defaultAnalyticsFilters: AnalyticsFilters = {
   year: "2025",
@@ -209,124 +258,20 @@ function formatDuration(minutes: number) {
   return `${hours}h ${mins}m`;
 }
 
-function roleByFunctionality(functionality: FunctionalityType) {
-  if (functionality === "Security") return "Security Manager";
-  if (functionality === "Control") return "Operations Manager";
-  if (functionality === "Energy") return "Energy Manager";
-  return "Monitoring Manager";
+function createEmptyFunctionalityMap(): Record<FunctionalityType, number> {
+  return {
+    Monitoring: 0,
+    Security: 0,
+    Control: 0,
+    Energy: 0,
+  };
 }
 
-function identifyFunctionality(device: DeviceSummary): FunctionalityType {
-  const type = device.type.toLowerCase();
-  const category = device.category.toLowerCase();
-  const subCategory = device.subCategory.toLowerCase();
-
-  if (type.includes("motion") || category.includes("security")) {
-    return "Security";
-  }
-
-  if (
-    type.includes("valve") ||
-    subCategory.includes("water") ||
-    subCategory.includes("hvac")
-  ) {
-    return "Control";
-  }
-
-  if (
-    type.includes("energy") ||
-    type.includes("power") ||
-    category.includes("energy")
-  ) {
-    return "Energy";
-  }
-
+function identifyFunctionality(type: string): FunctionalityType {
+  if (type === "camera") return "Security";
+  if (type === "gateway" || type === "controller") return "Control";
+  if (type === "meter") return "Energy";
   return "Monitoring";
-}
-
-function applyAnalyticsFilters(
-  devices: DeviceSummary[],
-  filters?: AnalyticsFilters,
-) {
-  if (!filters) return devices;
-
-  return devices.filter((device) => {
-    if (filters.company !== "all" && device.company !== filters.company) {
-      return false;
-    }
-
-    if (filters.location !== "all" && device.location !== filters.location) {
-      return false;
-    }
-
-    if (filters.deviceType !== "all" && device.type !== filters.deviceType) {
-      return false;
-    }
-
-    if (
-      filters.status !== "all" &&
-      ((filters.status === "online" && !device.isOnline) ||
-        (filters.status === "offline" && device.isOnline))
-    ) {
-      return false;
-    }
-
-    if (filters.ownership !== "all" && device.ownership !== filters.ownership) {
-      return false;
-    }
-
-    if (
-      filters.functionality !== "all" &&
-      identifyFunctionality(device) !== filters.functionality
-    ) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
-function safeDevicesWithFallback(filteredDevices: DeviceSummary[]) {
-  return filteredDevices.length > 0 ? filteredDevices : mockDeviceSummaries;
-}
-
-function calculateDeviceUptime(device: DeviceSummary) {
-  const baseScore = 96.4;
-  const onlineAdjustment = device.isOnline ? 2.3 : -4.2;
-  const alarmPenalty = device.alarms * 0.7;
-  const ownershipPenalty = device.ownership === "shared" ? 0.3 : 0;
-  return round(
-    clamp(
-      baseScore + onlineAdjustment - alarmPenalty - ownershipPenalty,
-      88,
-      99.9,
-    ),
-  );
-}
-
-function estimateRetentionMinutes(avgUptime: number, alarmsPerDevice: number) {
-  const base = 170;
-  const uptimeBoost = (avgUptime - 90) * 28;
-  const alarmPenalty = alarmsPerDevice * 42;
-  return Math.round(clamp(base + uptimeBoost - alarmPenalty, 90, 720));
-}
-
-function estimateUsagePercent(
-  uniqueFunctionalityCount: number,
-  avgUptime: number,
-  onlineRatio: number,
-) {
-  const functionalityCoverage = clamp(
-    (uniqueFunctionalityCount / 4) * 100,
-    0,
-    100,
-  );
-  const uptimeScore = clamp(((avgUptime - 88) / 12) * 100, 0, 100);
-  const onlineScore = clamp(onlineRatio * 100, 0, 100);
-  const weightedScore =
-    functionalityCoverage * 0.42 + uptimeScore * 0.33 + onlineScore * 0.25;
-
-  return round(clamp(weightedScore, 35, 98));
 }
 
 function dominantFunctionality(
@@ -346,224 +291,281 @@ function dominantFunctionality(
   return selected;
 }
 
-function createEmptyFunctionalityMap(): Record<FunctionalityType, number> {
-  return {
-    Monitoring: 0,
-    Security: 0,
-    Control: 0,
-    Energy: 0,
-  };
-}
-
-function buildUserStats(devices: DeviceSummary[]): UserStat[] {
-  const map = new Map<
-    string,
-    {
-      avatarUrl: string;
-      devices: number;
-      onlineDevices: number;
-      totalUptime: number;
-      totalAlarms: number;
-      functionalityBreakdown: Record<FunctionalityType, number>;
-    }
-  >();
-
-  for (const device of devices) {
-    const key = device.assignedUser.name;
-    const existing = map.get(key);
-    const functionality = identifyFunctionality(device);
-    const uptime = calculateDeviceUptime(device);
-
-    if (!existing) {
-      map.set(key, {
-        avatarUrl: device.assignedUser.avatarUrl,
-        devices: 1,
-        onlineDevices: device.isOnline ? 1 : 0,
-        totalUptime: uptime,
-        totalAlarms: device.alarms,
-        functionalityBreakdown: {
-          Monitoring: functionality === "Monitoring" ? 1 : 0,
-          Security: functionality === "Security" ? 1 : 0,
-          Control: functionality === "Control" ? 1 : 0,
-          Energy: functionality === "Energy" ? 1 : 0,
-        },
-      });
-      continue;
-    }
-
-    existing.devices += 1;
-    existing.onlineDevices += device.isOnline ? 1 : 0;
-    existing.totalUptime += uptime;
-    existing.totalAlarms += device.alarms;
-    existing.functionalityBreakdown[functionality] += 1;
-  }
-
-  return Array.from(map.entries()).map(([name, aggregate]) => {
-    const avgUptime = round(aggregate.totalUptime / aggregate.devices);
-    const alarmsPerDevice = aggregate.totalAlarms / aggregate.devices;
-    const retentionMinutes = estimateRetentionMinutes(
-      avgUptime,
-      alarmsPerDevice,
-    );
-    const usagePercent = estimateUsagePercent(
-      functionalityOrder.filter(
-        (functionality) => aggregate.functionalityBreakdown[functionality] > 0,
-      ).length,
-      avgUptime,
-      aggregate.onlineDevices / aggregate.devices,
-    );
-
-    return {
-      name,
-      avatarUrl: aggregate.avatarUrl,
-      devices: aggregate.devices,
-      onlineDevices: aggregate.onlineDevices,
-      avgUptime,
-      retentionMinutes,
-      usagePercent,
-      dominantFunctionality: dominantFunctionality(
-        aggregate.functionalityBreakdown,
-      ),
-      functionalityBreakdown: aggregate.functionalityBreakdown,
-    };
-  });
-}
-
-function buildCompanyStats(devices: DeviceSummary[]): CompanyStat[] {
-  const map = new Map<
-    string,
-    {
-      devicesUnderCompany: number;
-      usersUnderCompany: number;
-      onlineDevices: number;
-      totalUptime: number;
-      totalAlarms: number;
-      functionalityBreakdown: Record<FunctionalityType, number>;
-      newestTimestamp: string;
-    }
-  >();
-
-  for (const device of devices) {
-    const key = device.company;
-    const existing = map.get(key);
-    const functionality = identifyFunctionality(device);
-    const uptime = calculateDeviceUptime(device);
-
-    if (!existing) {
-      map.set(key, {
-        devicesUnderCompany: 1,
-        usersUnderCompany: device.userCount,
-        onlineDevices: device.isOnline ? 1 : 0,
-        totalUptime: uptime,
-        totalAlarms: device.alarms,
-        functionalityBreakdown: {
-          Monitoring: functionality === "Monitoring" ? 1 : 0,
-          Security: functionality === "Security" ? 1 : 0,
-          Control: functionality === "Control" ? 1 : 0,
-          Energy: functionality === "Energy" ? 1 : 0,
-        },
-        newestTimestamp: device.lastDataTimestamp,
-      });
-      continue;
-    }
-
-    existing.devicesUnderCompany += 1;
-    existing.usersUnderCompany += device.userCount;
-    existing.onlineDevices += device.isOnline ? 1 : 0;
-    existing.totalUptime += uptime;
-    existing.totalAlarms += device.alarms;
-    existing.functionalityBreakdown[functionality] += 1;
-    if (device.lastDataTimestamp > existing.newestTimestamp) {
-      existing.newestTimestamp = device.lastDataTimestamp;
-    }
-  }
-
-  return Array.from(map.entries()).map(([company, aggregate]) => {
-    const avgUptime = round(
-      aggregate.totalUptime / aggregate.devicesUnderCompany,
-    );
-    const alarmsPerDevice =
-      aggregate.totalAlarms / aggregate.devicesUnderCompany;
-    const retentionMinutes = estimateRetentionMinutes(
-      avgUptime,
-      alarmsPerDevice,
-    );
-    const usagePercent = estimateUsagePercent(
-      functionalityOrder.filter(
-        (functionality) => aggregate.functionalityBreakdown[functionality] > 0,
-      ).length,
-      avgUptime,
-      aggregate.onlineDevices / aggregate.devicesUnderCompany,
-    );
-
-    return {
-      company,
-      devicesUnderCompany: aggregate.devicesUnderCompany,
-      usersUnderCompany: aggregate.usersUnderCompany,
-      onlineDevices: aggregate.onlineDevices,
-      avgUptime,
-      retentionMinutes,
-      usagePercent,
-      dominantFunctionality: dominantFunctionality(
-        aggregate.functionalityBreakdown,
-      ),
-      functionalityBreakdown: aggregate.functionalityBreakdown,
-    };
-  });
+function roleByFunctionality(functionality: FunctionalityType) {
+  if (functionality === "Security") return "Security Manager";
+  if (functionality === "Control") return "Operations Manager";
+  if (functionality === "Energy") return "Energy Manager";
+  return "Monitoring Manager";
 }
 
 function addRanking<T>(rows: T[]): Array<T & { rank: number }> {
   return rows.map((row, index) => ({ ...row, rank: index + 1 }));
 }
 
-export function getAnalyticsFilterOptions(): AnalyticsFilterOptions {
-  const companies = Array.from(
-    new Set(mockDeviceSummaries.map((device) => device.company)),
-  ).sort();
-  const locations = Array.from(
-    new Set(mockDeviceSummaries.map((device) => device.location)),
-  ).sort();
-  const deviceTypes = Array.from(
-    new Set(mockDeviceSummaries.map((device) => device.type)),
-  ).sort();
-
+function buildMonthlyStackedSeries(
+  items: Array<{ name: string; baseHours: number }>,
+) {
   return {
-    companies,
-    locations,
-    deviceTypes,
-    functionalities: [...functionalityOrder],
+    months: monthLabels,
+    series: items.map((item, itemIndex) => {
+      const bias = (itemIndex - (items.length - 1) / 2) * 0.4;
+      const data = monthFactors.map((factor, index) => {
+        const wobble = ((index % 4) - 1.5) * 0.2;
+        const value = item.baseHours * factor + bias + wobble;
+        return round(clamp(value, 0.5, item.baseHours * 1.6), 2);
+      });
+      return {
+        name: item.name,
+        data,
+      };
+    }),
   };
 }
 
-function calculateDataUsageGb(device: DeviceSummary) {
-  const t1 = Math.abs(device.data.t1);
-  const t2 = Math.abs(device.data.t2);
-  const t3 = Math.abs(device.data.t3);
-  return round((t1 * 0.03 + t2 * 0.02 + t3 * 0.015) * 1.4, 2);
+function getDerivedDevices(): DerivedDevice[] {
+  const dataset = snapshotApi.getDataset();
+  const companyById = new Map(dataset.companies.map((company) => [company.id, company]));
+  const userById = new Map(dataset.iotUsers.map((user) => [user.id, user]));
+  const sharesByDeviceId = new Map<string, number>();
+
+  for (const share of dataset.deviceShares) {
+    sharesByDeviceId.set(
+      share.deviceId,
+      (sharesByDeviceId.get(share.deviceId) ?? 0) + 1,
+    );
+  }
+
+  return dataset.devices.map((device) => {
+    const company = companyById.get(device.companyId);
+    const owner = userById.get(device.ownerUserId);
+
+    return {
+      id: device.id,
+      name: device.name,
+      type: device.type,
+      category: device.category,
+      serialNumber: device.serialNumber,
+      manufacturer: device.manufacturer,
+      model: device.model,
+      firmwareVersion: device.firmwareVersion,
+      macAddress: device.macAddress,
+      location: device.location,
+      company: company?.name ?? "Unknown Company",
+      companyId: device.companyId,
+      ownerUserId: device.ownerUserId,
+      ownerName: owner?.fullName ?? "Unknown User",
+      userCount: 1 + (sharesByDeviceId.get(device.id) ?? 0),
+      isOnline: device.status === "active",
+      alarms: device.alertsCount,
+      status: device.status,
+      bandwidthMbps: device.bandwidthMbps,
+      dataUsageGb: device.dataUsageGb,
+      createdAt: device.createdAt,
+      functionality: identifyFunctionality(device.type),
+    };
+  });
 }
 
-function calculateDeviceUsageScore(device: DeviceSummary) {
-  const telemetryDensity = Math.abs(device.data.t1) + Math.abs(device.data.t2);
-  const telemetryFactor = clamp(telemetryDensity / 12, 0, 18);
-  const onlineFactor = device.isOnline ? 26 : -18;
-  const alarmPenalty = device.alarms * 4.5;
-  const ownershipPenalty = device.ownership === "shared" ? 2.5 : 0;
+function applyAnalyticsFilters(
+  devices: DerivedDevice[],
+  filters?: AnalyticsFilters,
+) {
+  if (!filters) return devices;
+  const dataset = snapshotApi.getDataset();
+  const shareDeviceIds = new Set(dataset.deviceShares.map((share) => share.deviceId));
 
-  return round(
-    clamp(
-      58 + telemetryFactor + onlineFactor - alarmPenalty - ownershipPenalty,
-      20,
-      98,
-    ),
-    0,
+  return devices.filter((device) => {
+    if (filters.company !== "all" && device.company !== filters.company) {
+      return false;
+    }
+    if (filters.location !== "all" && device.location !== filters.location) {
+      return false;
+    }
+    if (filters.deviceType !== "all" && device.type !== filters.deviceType) {
+      return false;
+    }
+    if (
+      filters.status !== "all" &&
+      ((filters.status === "online" && !device.isOnline) ||
+        (filters.status === "offline" && device.isOnline))
+    ) {
+      return false;
+    }
+    if (
+      filters.ownership === "own" &&
+      shareDeviceIds.has(device.id)
+    ) {
+      return false;
+    }
+    if (
+      filters.ownership === "shared" &&
+      !shareDeviceIds.has(device.id)
+    ) {
+      return false;
+    }
+    if (
+      filters.functionality !== "all" &&
+      device.functionality !== filters.functionality
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function safeDevicesWithFallback(filteredDevices: DerivedDevice[]) {
+  if (filteredDevices.length) return filteredDevices;
+  return getDerivedDevices();
+}
+
+function buildUserStats(devices: DerivedDevice[]): UserStat[] {
+  const dataset = snapshotApi.getDataset();
+  const companyById = new Map(dataset.companies.map((company) => [company.id, company]));
+  const userById = new Map(dataset.iotUsers.map((user) => [user.id, user]));
+  const sharesByTarget = new Map<string, string[]>();
+
+  for (const share of dataset.deviceShares) {
+    const linkedDevices = sharesByTarget.get(share.targetUserId) ?? [];
+    linkedDevices.push(share.deviceId);
+    sharesByTarget.set(share.targetUserId, linkedDevices);
+  }
+
+  return dataset.iotUsers
+    .map((user) => {
+      const ownedDevices = devices.filter((device) => device.ownerUserId === user.id);
+      const sharedDeviceIds = new Set(sharesByTarget.get(user.id) ?? []);
+      const sharedDevices = devices.filter((device) => sharedDeviceIds.has(device.id));
+      const linkedDevices = [...ownedDevices, ...sharedDevices];
+
+      if (!linkedDevices.length) {
+        return null;
+      }
+
+      const functionalityBreakdown = createEmptyFunctionalityMap();
+      for (const device of linkedDevices) {
+        functionalityBreakdown[device.functionality] += 1;
+      }
+
+      const avgUptime = round(user.uptimePercent, 1);
+      const retentionMinutes = Math.round(clamp(user.retentionRate * 7.2, 90, 720));
+      const usagePercent = round(
+        clamp(
+          (user.featureUsage.deviceMonitoring +
+            user.featureUsage.reports +
+            user.featureUsage.alerts +
+            user.featureUsage.dashboardUsage) /
+            4,
+          35,
+          98,
+        ),
+      );
+
+      return {
+        id: user.id,
+        name: user.fullName,
+        avatarUrl: "/avatar.jpg",
+        company: companyById.get(user.companyId)?.name ?? "Unknown",
+        devices: linkedDevices.length,
+        onlineDevices: linkedDevices.filter((device) => device.isOnline).length,
+        avgUptime,
+        retentionMinutes,
+        usagePercent,
+        dominantFunctionality: dominantFunctionality(functionalityBreakdown),
+        functionalityBreakdown,
+      };
+    })
+    .filter((item): item is UserStat => Boolean(item));
+}
+
+function buildCompanyStats(devices: DerivedDevice[]): CompanyStat[] {
+  const dataset = snapshotApi.getDataset();
+  const usersByCompany = new Map<string, number>();
+  const uptimeByCompany = new Map<string, number[]>();
+  const retentionByCompany = new Map<string, number[]>();
+  const usageByCompany = new Map<string, number[]>();
+
+  for (const company of dataset.companies) {
+    const companyUsers = dataset.iotUsers.filter((user) => user.companyId === company.id);
+    usersByCompany.set(company.name, companyUsers.length);
+    uptimeByCompany.set(company.name, companyUsers.map((user) => user.uptimePercent));
+    retentionByCompany.set(
+      company.name,
+      companyUsers.map((user) => clamp(user.retentionRate * 7.2, 90, 720)),
+    );
+    usageByCompany.set(
+      company.name,
+      companyUsers.map(
+        (user) =>
+          (user.featureUsage.deviceMonitoring +
+            user.featureUsage.reports +
+            user.featureUsage.alerts +
+            user.featureUsage.dashboardUsage) /
+          4,
+      ),
+    );
+  }
+
+  return dataset.companies.map((company) => {
+    const companyDevices = devices.filter((device) => device.companyId === company.id);
+    const functionalityBreakdown = createEmptyFunctionalityMap();
+
+    for (const device of companyDevices) {
+      functionalityBreakdown[device.functionality] += 1;
+    }
+
+    const uptimeSeries = uptimeByCompany.get(company.name) ?? [90];
+    const retentionSeries = retentionByCompany.get(company.name) ?? [120];
+    const usageSeries = usageByCompany.get(company.name) ?? [40];
+
+    return {
+      company: company.name,
+      devicesUnderCompany: companyDevices.length,
+      usersUnderCompany: usersByCompany.get(company.name) ?? 0,
+      onlineDevices: companyDevices.filter((device) => device.isOnline).length,
+      avgUptime: round(
+        uptimeSeries.reduce((sum, value) => sum + value, 0) /
+          Math.max(uptimeSeries.length, 1),
+      ),
+      retentionMinutes: Math.round(
+        retentionSeries.reduce((sum, value) => sum + value, 0) /
+          Math.max(retentionSeries.length, 1),
+      ),
+      usagePercent: round(
+        usageSeries.reduce((sum, value) => sum + value, 0) /
+          Math.max(usageSeries.length, 1),
+      ),
+      dominantFunctionality: dominantFunctionality(functionalityBreakdown),
+      functionalityBreakdown,
+    };
+  });
+}
+
+function calculateDeviceUsageScore(device: DerivedDevice) {
+  const telemetryFactor = clamp(
+    device.dataUsageGb / 22 + device.bandwidthMbps / 8,
+    4,
+    36,
   );
+  const onlineFactor = device.isOnline ? 22 : -16;
+  const alarmPenalty = device.alarms * 3.8;
+  return round(clamp(54 + telemetryFactor + onlineFactor - alarmPenalty, 20, 98), 0);
+}
+
+export function getAnalyticsFilterOptions(): AnalyticsFilterOptions {
+  const devices = getDerivedDevices();
+  return {
+    companies: Array.from(new Set(devices.map((device) => device.company))).sort(),
+    locations: Array.from(new Set(devices.map((device) => device.location))).sort(),
+    deviceTypes: Array.from(new Set(devices.map((device) => device.type))).sort(),
+    functionalities: [...functionalityOrder],
+  };
 }
 
 export function getUserDashboardData(
   filters?: AnalyticsFilters,
 ): UserDashboardDerivedData {
   const filteredDevices = safeDevicesWithFallback(
-    applyAnalyticsFilters(mockDeviceSummaries, filters),
+    applyAnalyticsFilters(getDerivedDevices(), filters),
   );
   const users = buildUserStats(filteredDevices);
 
@@ -602,26 +604,35 @@ export function getUserDashboardData(
     },
   ];
 
-  const retentionByUser = users.map((user) => ({
-    label: shortLabel(user.name),
-    retentionHours: round(user.retentionMinutes / 60, 2),
-  }));
+  const topRetentionUsers = [...users]
+    .sort((a, b) => b.retentionMinutes - a.retentionMinutes)
+    .slice(0, 5)
+    .map((user) => ({
+      name: shortLabel(user.name),
+      baseHours: round(user.retentionMinutes / 60, 2),
+    }));
+
+  const retentionByUserMonthlyStacked =
+    buildMonthlyStackedSeries(topRetentionUsers);
 
   const functionalityUsageByUser = users.map((user) => ({
     label: shortLabel(user.name),
     monitoring: round(
-      (user.functionalityBreakdown.Monitoring / user.devices) * 100,
+      (user.functionalityBreakdown.Monitoring / Math.max(user.devices, 1)) * 100,
       0,
     ),
     security: round(
-      (user.functionalityBreakdown.Security / user.devices) * 100,
+      (user.functionalityBreakdown.Security / Math.max(user.devices, 1)) * 100,
       0,
     ),
     control: round(
-      (user.functionalityBreakdown.Control / user.devices) * 100,
+      (user.functionalityBreakdown.Control / Math.max(user.devices, 1)) * 100,
       0,
     ),
-    energy: round((user.functionalityBreakdown.Energy / user.devices) * 100, 0),
+    energy: round(
+      (user.functionalityBreakdown.Energy / Math.max(user.devices, 1)) * 100,
+      0,
+    ),
   }));
 
   const usersByFunctionalityAccumulator = createEmptyFunctionalityMap();
@@ -689,8 +700,8 @@ export function getUserDashboardData(
 
   const userTableRows = users
     .sort((a, b) => b.usagePercent - a.usagePercent)
-    .map((user, index) => ({
-      id: `user-${index + 1}`,
+    .map((user) => ({
+      id: user.id,
       username: user.name,
       role: roleByFunctionality(user.dominantFunctionality),
       avgUptime: formatPercent(user.avgUptime),
@@ -702,7 +713,7 @@ export function getUserDashboardData(
   return {
     metrics,
     uptimeDistribution,
-    retentionByUser,
+    retentionByUserMonthlyStacked,
     functionalityUsageByUser,
     topUsersByUsage,
     topUsersByUptime,
@@ -716,7 +727,7 @@ export function getCompanyDashboardData(
   filters?: AnalyticsFilters,
 ): CompanyDashboardDerivedData {
   const filteredDevices = safeDevicesWithFallback(
-    applyAnalyticsFilters(mockDeviceSummaries, filters),
+    applyAnalyticsFilters(getDerivedDevices(), filters),
   );
   const companies = buildCompanyStats(filteredDevices).sort(
     (a, b) => b.devicesUnderCompany - a.devicesUnderCompany,
@@ -769,10 +780,16 @@ export function getCompanyDashboardData(
     });
   }
 
-  const retentionByCompany = companies.map((company) => ({
-    label: shortLabel(company.company),
-    retentionHours: round(company.retentionMinutes / 60, 2),
-  }));
+  const topRetentionCompanies = [...companies]
+    .sort((a, b) => b.retentionMinutes - a.retentionMinutes)
+    .slice(0, 5)
+    .map((company) => ({
+      name: shortLabel(company.company),
+      baseHours: round(company.retentionMinutes / 60, 2),
+    }));
+
+  const retentionByCompanyMonthlyStacked =
+    buildMonthlyStackedSeries(topRetentionCompanies);
 
   const usageByCompany = companies.map((company) => ({
     label: shortLabel(company.company),
@@ -821,7 +838,7 @@ export function getCompanyDashboardData(
     avgRetentionMinutes,
     avgUsagePercent,
     usersUnderCompanySplit,
-    retentionByCompany,
+    retentionByCompanyMonthlyStacked,
     usageByCompany,
     topCompanies,
     devicesByFunctionality,
@@ -833,19 +850,18 @@ export function getDeviceDashboardData(
   filters?: AnalyticsFilters,
 ): DeviceDashboardDerivedData {
   const devices = [
-    ...safeDevicesWithFallback(
-      applyAnalyticsFilters(mockDeviceSummaries, filters),
-    ),
+    ...safeDevicesWithFallback(applyAnalyticsFilters(getDerivedDevices(), filters)),
   ];
   const totalDevices = devices.length;
   const activeDevices = devices.filter((device) => device.isOnline).length;
   const inactiveDevices = totalDevices - activeDevices;
   const newlyAddedDevices = devices.filter(
-    (device) => (device.position ?? Number.MAX_SAFE_INTEGER) <= 3,
+    (device) =>
+      new Date(device.createdAt).valueOf() > Date.now() - 1000 * 60 * 60 * 24 * 60,
   ).length;
-  const faultyDevices = devices.filter((device) => device.alarms >= 2).length;
+  const faultyDevices = devices.filter((device) => device.status === "faulty").length;
   const totalDataUsageGb = round(
-    devices.reduce((sum, device) => sum + calculateDataUsageGb(device), 0),
+    devices.reduce((sum, device) => sum + device.dataUsageGb, 0),
     1,
   );
 
@@ -858,32 +874,20 @@ export function getDeviceDashboardData(
     totalDataUsageGb,
   };
 
-  const monthFactors = [
-    0.88, 0.94, 0.9, 1.02, 1.08, 1.05, 0.78, 0.8, 0.83, 0.92, 0.85, 0.79,
-  ];
-  const monthLabels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const avgBandwidth =
+    devices.reduce((sum, device) => sum + device.bandwidthMbps, 0) /
+    Math.max(devices.length, 1);
+  const avgUsage =
+    devices.reduce((sum, device) => sum + device.dataUsageGb, 0) /
+    Math.max(devices.length, 1);
 
-  const baseBandwidth = Math.max(6.5, activeDevices * 1.35);
   const bandwidthAndUsageTrend = monthLabels.map((month, index) => {
-    const bandwidth = round(baseBandwidth * monthFactors[index], 1);
-    const usage = round(bandwidth * 0.63 - inactiveDevices * 0.2, 1);
+    const bandwidth = round(Math.max(1, avgBandwidth * monthFactors[index]), 1);
+    const usage = round(Math.max(1, avgUsage * (monthFactors[index] + 0.08)), 1);
     return {
       month,
       bandwidthMbps: bandwidth,
-      deviceUsageMbps: Math.max(1, usage),
+      deviceUsageMbps: usage,
     };
   });
 
@@ -920,7 +924,7 @@ export function getDeviceDashboardData(
     category: device.category,
     location: device.location,
     userCount: device.userCount,
-    assignedUser: device.assignedUser.name,
+    assignedUser: device.ownerName,
     manufacturerModel: `${device.manufacturer} - ${device.model}`,
     firmwareVersion: device.firmwareVersion,
     macAddress: device.macAddress,

@@ -10,8 +10,10 @@ import {
   IoPauseCircleOutline,
   IoServerOutline,
 } from "react-icons/io5";
+import { useState } from "react";
 import { KpiGrid } from "@/components/cards/kpi-grid";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
+import { ChartFilterGroup } from "@/components/filters/chart-filter-group";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";
 import {
   AnalyticsEmptyState,
@@ -22,9 +24,11 @@ import {
   AnalyticsDataTable,
   type TableColumn,
 } from "@/components/tables/analytics-data-table";
-import { useAnalyticsFilters } from "@/hooks/use-analytics-filters";
+import { defaultAnalyticsFilters } from "@/data/mockData";
+import { useAnalyticsFilterOptions } from "@/hooks/use-analytics-filter-options";
+import { useDemoSession } from "@/hooks/use-demo-session";
 import { fetchDeviceAnalytics } from "@/lib/api";
-import type { DeviceTableRow } from "@/types/models";
+import type { AnalyticsFilters, DeviceTableRow } from "@/types/models";
 
 const iconMap = {
   "total-devices": IoServerOutline,
@@ -68,25 +72,100 @@ const columns: TableColumn<DeviceTableRow>[] = [
 ];
 
 export function DeviceAnalyticsView() {
-  const { filters, resetFilters } = useAnalyticsFilters((state) => ({
-    filters: state.filters,
-    resetFilters: state.resetFilters,
-  }));
+  const session = useDemoSession();
+  const filterOptionsQuery = useAnalyticsFilterOptions();
+  const filterOptions = filterOptionsQuery.data;
+  const canManageDevices = session?.role === "company";
+  const showCompanyFilters = session?.role !== "iot_user";
 
-  const query = useQuery({
-    queryKey: ["analytics", "device", filters],
-    queryFn: () => fetchDeviceAnalytics(filters),
+  const defaultSummaryFilters = defaultAnalyticsFilters;
+  const defaultBandwidthFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "week",
+  };
+  const defaultUsageFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "month",
+  };
+  const defaultGrowthFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+    dateRange: "year",
+  };
+  const defaultStatusFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+  };
+  const defaultTopUsageFilters: AnalyticsFilters = {
+    ...defaultAnalyticsFilters,
+  };
+
+  const [bandwidthFilters, setBandwidthFilters] = useState<AnalyticsFilters>(
+    () => defaultBandwidthFilters,
+  );
+  const [usageFilters, setUsageFilters] = useState<AnalyticsFilters>(
+    () => defaultUsageFilters,
+  );
+  const [growthFilters, setGrowthFilters] = useState<AnalyticsFilters>(
+    () => defaultGrowthFilters,
+  );
+  const [statusFilters, setStatusFilters] = useState<AnalyticsFilters>(
+    () => defaultStatusFilters,
+  );
+  const [topUsageFilters, setTopUsageFilters] = useState<AnalyticsFilters>(
+    () => defaultTopUsageFilters,
+  );
+
+  const resetAllCharts = () => {
+    setBandwidthFilters(defaultBandwidthFilters);
+    setUsageFilters(defaultUsageFilters);
+    setGrowthFilters(defaultGrowthFilters);
+    setStatusFilters(defaultStatusFilters);
+    setTopUsageFilters(defaultTopUsageFilters);
+  };
+
+  const summaryQuery = useQuery({
+    queryKey: ["analytics", "device", "summary", defaultSummaryFilters],
+    queryFn: () => fetchDeviceAnalytics(defaultSummaryFilters),
+  });
+
+  const bandwidthQuery = useQuery({
+    queryKey: ["analytics", "device", "bandwidth", bandwidthFilters],
+    queryFn: () => fetchDeviceAnalytics(bandwidthFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const usageQuery = useQuery({
+    queryKey: ["analytics", "device", "usage", usageFilters],
+    queryFn: () => fetchDeviceAnalytics(usageFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const growthQuery = useQuery({
+    queryKey: ["analytics", "device", "growth", growthFilters],
+    queryFn: () => fetchDeviceAnalytics(growthFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const statusQuery = useQuery({
+    queryKey: ["analytics", "device", "status", statusFilters],
+    queryFn: () => fetchDeviceAnalytics(statusFilters),
+    placeholderData: summaryQuery.data,
+  });
+
+  const topUsageQuery = useQuery({
+    queryKey: ["analytics", "device", "top-usage", topUsageFilters],
+    queryFn: () => fetchDeviceAnalytics(topUsageFilters),
+    placeholderData: summaryQuery.data,
   });
 
   const bandwidthOptions: ApexOptions = {
     chart: { type: "line" },
-    xaxis: { categories: query.data?.bandwidthUsageTrend.categories },
+    xaxis: { categories: bandwidthQuery.data?.bandwidthUsageTrend.categories },
     yaxis: { labels: { formatter: (value) => `${Math.round(value)} Mbps` } },
   };
 
   const usageOptions: ApexOptions = {
     chart: { type: "area" },
-    xaxis: { categories: query.data?.dataUsageTrend.categories },
+    xaxis: { categories: usageQuery.data?.dataUsageTrend.categories },
     yaxis: { labels: { formatter: (value) => `${Math.round(value)} GB` } },
     fill: {
       type: "gradient",
@@ -96,12 +175,12 @@ export function DeviceAnalyticsView() {
 
   const yoyOptions: ApexOptions = {
     chart: { type: "bar", stacked: true },
-    xaxis: { categories: query.data?.yearOverYearGrowth.categories },
+    xaxis: { categories: growthQuery.data?.yearOverYearGrowth.categories },
     plotOptions: { bar: { borderRadius: 4, columnWidth: "50%" } },
   };
 
   const activeVsDisabledOptions: ApexOptions = {
-    labels: query.data?.activeVsDisabledDevices.labels,
+    labels: statusQuery.data?.activeVsDisabledDevices.labels,
     legend: { position: "bottom" },
     stroke: { width: 0 },
   };
@@ -110,7 +189,7 @@ export function DeviceAnalyticsView() {
     chart: { type: "bar" },
     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
     xaxis: {
-      categories: query.data?.topDevicesByDataUsage.categories,
+      categories: topUsageQuery.data?.topDevicesByDataUsage.categories,
       labels: { formatter: (value) => `${Math.round(Number(value))} GB` },
     },
   };
@@ -120,20 +199,22 @@ export function DeviceAnalyticsView() {
       title="Device Analytics"
       description="Device performance, usage trends, growth, and top-consumption insights for fleet operations."
     >
-      {query.isLoading ? (
+      {summaryQuery.isLoading ? (
         <AnalyticsLoadingState />
-      ) : query.isError ? (
+      ) : summaryQuery.isError ? (
         <AnalyticsErrorState
           title="Unable to load device analytics"
           description={
-            query.error instanceof Error ? query.error.message : "Unknown error"
+            summaryQuery.error instanceof Error
+              ? summaryQuery.error.message
+              : "Unknown error"
           }
-          onRetry={() => query.refetch()}
+          onRetry={() => summaryQuery.refetch()}
         />
-      ) : query.data?.topDevices.length ? (
+      ) : summaryQuery.data?.topDevices.length ? (
         <>
           <KpiGrid
-            metrics={query.data.kpis}
+            metrics={summaryQuery.data.kpis}
             iconMap={iconMap}
             columnsClassName="grid-cols-1 sm:grid-cols-2 xl:grid-cols-6"
           />
@@ -143,17 +224,43 @@ export function DeviceAnalyticsView() {
               className="xl:col-span-6"
               title="Device Bandwidth Usage Trend"
               type="line"
-              series={query.data.bandwidthUsageTrend.series}
+              series={bandwidthQuery.data?.bandwidthUsageTrend.series ?? []}
               options={bandwidthOptions}
               description="Bandwidth throughput trend for selected filters"
+              actions={
+                <ChartFilterGroup
+                  filters={bandwidthFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "deviceType", "location"]
+                      : ["dateRange", "deviceType", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setBandwidthFilters}
+                  onReset={() => setBandwidthFilters(defaultBandwidthFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-6"
               title="Device Data Usage Trend"
               type="area"
-              series={query.data.dataUsageTrend.series}
+              series={usageQuery.data?.dataUsageTrend.series ?? []}
               options={usageOptions}
               description="Data volume consumed by devices"
+              actions={
+                <ChartFilterGroup
+                  filters={usageFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "deviceType", "location"]
+                      : ["dateRange", "deviceType", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setUsageFilters}
+                  onReset={() => setUsageFilters(defaultUsageFilters)}
+                />
+              }
             />
           </section>
 
@@ -162,23 +269,62 @@ export function DeviceAnalyticsView() {
               className="xl:col-span-6"
               title="Year-over-Year Device Growth"
               type="bar"
-              series={query.data.yearOverYearGrowth.series}
+              series={growthQuery.data?.yearOverYearGrowth.series ?? []}
               options={yoyOptions}
               description="Active vs disabled device growth"
+              actions={
+                <ChartFilterGroup
+                  filters={growthFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["dateRange", "companyId", "deviceType"]
+                      : ["dateRange", "deviceType"]
+                  }
+                  options={filterOptions}
+                  onChange={setGrowthFilters}
+                  onReset={() => setGrowthFilters(defaultGrowthFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-3"
               title="Active vs Disabled Devices"
               type="donut"
-              series={query.data.activeVsDisabledDevices.series}
+              series={statusQuery.data?.activeVsDisabledDevices.series ?? []}
               options={activeVsDisabledOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={statusFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["companyId", "deviceType", "location"]
+                      : ["deviceType", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setStatusFilters}
+                  onReset={() => setStatusFilters(defaultStatusFilters)}
+                />
+              }
             />
             <AnalyticsChartCard
               className="xl:col-span-3"
               title="Top Devices by Data Usage"
               type="bar"
-              series={query.data.topDevicesByDataUsage.series}
+              series={topUsageQuery.data?.topDevicesByDataUsage.series ?? []}
               options={topUsageOptions}
+              actions={
+                <ChartFilterGroup
+                  filters={topUsageFilters}
+                  fields={
+                    showCompanyFilters
+                      ? ["companyId", "deviceType", "location"]
+                      : ["deviceType", "location"]
+                  }
+                  options={filterOptions}
+                  onChange={setTopUsageFilters}
+                  onReset={() => setTopUsageFilters(defaultTopUsageFilters)}
+                />
+              }
             />
           </section>
 
@@ -187,21 +333,25 @@ export function DeviceAnalyticsView() {
               Top 5 Devices
             </h2>
             <AnalyticsDataTable
-              rows={query.data.topDevices}
+              rows={summaryQuery.data.topDevices}
               columns={columns}
-              rowActions={() => [
-                { label: "View" },
-                { label: "Edit" },
-                { label: "Delete", destructive: true },
-              ]}
+              rowActions={() =>
+                canManageDevices
+                  ? [
+                      { label: "View" },
+                      { label: "Edit" },
+                      { label: "Delete", destructive: true },
+                    ]
+                  : [{ label: "View" }]
+              }
             />
           </section>
         </>
       ) : (
         <AnalyticsEmptyState
           title="No devices available"
-          description="No device analytics match the selected filters. Reset filters to see full fleet data."
-          onReset={resetFilters}
+          description="No device analytics match the current selections. Reset chart filters to see full fleet data."
+          onReset={resetAllCharts}
         />
       )}
     </AnalyticsShell>

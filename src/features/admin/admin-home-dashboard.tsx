@@ -11,6 +11,7 @@ import {
   Users,
   Workflow,
 } from "lucide-react";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -24,37 +25,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-const summaryCards = [
-  {
-    id: "devices",
-    label: "Total Devices",
-    value: "10,987",
-    icon: Laptop,
-    iconClass: "bg-blue-50 text-blue-500",
-  },
-  {
-    id: "users",
-    label: "Total Users",
-    value: "10,987",
-    icon: Users,
-    iconClass: "bg-sky-50 text-sky-500",
-  },
-  {
-    id: "companies",
-    label: "Total Companies",
-    value: "124",
-    icon: Building2,
-    iconClass: "bg-indigo-50 text-indigo-500",
-  },
-  {
-    id: "templates",
-    label: "Total Templates",
-    value: "10,987",
-    icon: Workflow,
-    iconClass: "bg-cyan-50 text-cyan-500",
-  },
-];
+import { snapshotApi } from "@/lib/mock-api/access-control";
 
 const devicesAnalytics = [
   { month: "Jan", active: 58, inactive: 8, newAdded: 18, discontinued: 5 },
@@ -199,6 +170,38 @@ function chartTooltipStyle() {
 }
 
 export function AdminHomeDashboard() {
+  const dataset = useMemo(() => snapshotApi.getDataset(), []);
+  const summaryCards = [
+    {
+      id: "devices",
+      label: "Total Devices",
+      value: String(dataset.devices.length),
+      icon: Laptop,
+      iconClass: "bg-blue-50 text-blue-500",
+    },
+    {
+      id: "users",
+      label: "Total IoT Users",
+      value: String(dataset.iotUsers.length),
+      icon: Users,
+      iconClass: "bg-sky-50 text-sky-500",
+    },
+    {
+      id: "companies",
+      label: "Total Companies",
+      value: String(dataset.companies.length),
+      icon: Building2,
+      iconClass: "bg-indigo-50 text-indigo-500",
+    },
+    {
+      id: "shares",
+      label: "Device Shares",
+      value: String(dataset.deviceShares.length),
+      icon: Workflow,
+      iconClass: "bg-cyan-50 text-cyan-500",
+    },
+  ];
+
   return (
     <div className="space-y-5">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

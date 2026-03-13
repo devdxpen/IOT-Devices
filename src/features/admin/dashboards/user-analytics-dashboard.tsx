@@ -3,8 +3,6 @@
 import { ArrowUpRight, Gauge, Mail, Timer, Users, Wrench } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -32,8 +30,8 @@ import {
   type DashboardMetricCard,
   DashboardMetrics,
   DashboardTableFooter,
-  YearSelect,
 } from "@/features/admin/dashboards/admin-dashboard-shared";
+import { AnalyticsChartFilters } from "@/features/admin/dashboards/analytics-chart-filters";
 import {
   type AnalyticsFilters,
   defaultAnalyticsFilters,
@@ -41,7 +39,6 @@ import {
   getAnalyticsFilterOptions,
   getUserDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-import { AnalyticsFilterBar } from "@/features/admin/dashboards/analytics-filter-bar";
 
 function tooltipStyle() {
   return {
@@ -106,38 +103,88 @@ function UserRankList({
 }
 
 export function UserAnalyticsDashboard() {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
+  const [uptimeFilters, setUptimeFilters] = useState<AnalyticsFilters>({
     ...defaultAnalyticsFilters,
   });
+  const [retentionFilters, setRetentionFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [usageFilters, setUsageFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [topUsersFilters, setTopUsersFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [functionalityFilters, setFunctionalityFilters] =
+    useState<AnalyticsFilters>({
+      ...defaultAnalyticsFilters,
+    });
+
   const filterOptions = useMemo(() => getAnalyticsFilterOptions(), []);
-  const data = useMemo(() => getUserDashboardData(filters), [filters]);
+  const summaryData = useMemo(
+    () => getUserDashboardData(defaultAnalyticsFilters),
+    [],
+  );
+  const uptimeData = useMemo(
+    () => getUserDashboardData(uptimeFilters),
+    [uptimeFilters],
+  );
+  const retentionData = useMemo(
+    () => getUserDashboardData(retentionFilters),
+    [retentionFilters],
+  );
+  const usageData = useMemo(
+    () => getUserDashboardData(usageFilters),
+    [usageFilters],
+  );
+  const topUsersData = useMemo(
+    () => getUserDashboardData(topUsersFilters),
+    [topUsersFilters],
+  );
+  const functionalityData = useMemo(
+    () => getUserDashboardData(functionalityFilters),
+    [functionalityFilters],
+  );
+
+  const retentionPalette = ["#1d4ed8", "#1e40af", "#2563eb", "#3b82f6", "#60a5fa"];
+  const retentionChartData = useMemo(() => {
+    const months = retentionData.retentionByUserMonthlyStacked.months;
+    const series = retentionData.retentionByUserMonthlyStacked.series;
+    return months.map((month, index) => {
+      const row: Record<string, string | number> = { month };
+      series.forEach((item) => {
+        row[item.name] = item.data[index] ?? 0;
+      });
+      return row;
+    });
+  }, [retentionData.retentionByUserMonthlyStacked]);
 
   const metricCards: DashboardMetricCard[] = [
     {
       id: "total-users",
       label: "Total Users",
-      value: String(data.metrics.totalUsers),
+      value: String(summaryData.metrics.totalUsers),
       icon: Users,
       iconClassName: "bg-sky-50 text-sky-500",
     },
     {
       id: "avg-uptime",
       label: "Avg Uptime",
-      value: `${data.metrics.avgUptime}%`,
+      value: `${summaryData.metrics.avgUptime}%`,
       icon: Gauge,
       iconClassName: "bg-emerald-50 text-emerald-500",
     },
     {
       id: "retention-time",
       label: "Retention Time",
-      value: formatMinutesAsDuration(data.metrics.avgRetentionMinutes),
+      value: formatMinutesAsDuration(summaryData.metrics.avgRetentionMinutes),
       icon: Timer,
       iconClassName: "bg-violet-50 text-violet-500",
     },
     {
       id: "functionality-usage",
       label: "Usage (Functionality)",
-      value: `${data.metrics.avgUsagePercent}%`,
+      value: `${summaryData.metrics.avgUsagePercent}%`,
       icon: Wrench,
       iconClassName: "bg-amber-50 text-amber-500",
     },
@@ -147,23 +194,22 @@ export function UserAnalyticsDashboard() {
     <div className="space-y-5">
       <h1 className="text-3xl font-semibold text-slate-900">User Analytics</h1>
 
-      <AnalyticsFilterBar
-        filters={filters}
-        options={filterOptions}
-        onChange={setFilters}
-        onReset={() => setFilters({ ...defaultAnalyticsFilters })}
-      />
-
       <DashboardMetrics cards={metricCards} columnsClassName="xl:grid-cols-4" />
 
       <section className="grid gap-4 xl:grid-cols-12">
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Avg Uptime Split
               </CardTitle>
-              <YearSelect defaultValue={filters.year} />
+              <AnalyticsChartFilters
+                filters={uptimeFilters}
+                fields={["year", "company", "location", "status", "ownership"]}
+                options={filterOptions}
+                onChange={setUptimeFilters}
+                onReset={() => setUptimeFilters({ ...defaultAnalyticsFilters })}
+              />
             </div>
           </CardHeader>
           <CardContent className="grid items-center gap-4 py-4 sm:grid-cols-[210px_1fr]">
@@ -171,14 +217,14 @@ export function UserAnalyticsDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={data.uptimeDistribution}
+                    data={uptimeData.uptimeDistribution}
                     dataKey="value"
                     nameKey="name"
                     innerRadius={58}
                     outerRadius={84}
                     stroke="none"
                   >
-                    {data.uptimeDistribution.map((entry) => (
+                    {uptimeData.uptimeDistribution.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
@@ -187,13 +233,13 @@ export function UserAnalyticsDashboard() {
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-4xl font-semibold text-slate-900">
-                  {data.metrics.avgUptime}%
+                  {uptimeData.metrics.avgUptime}%
                 </span>
                 <span className="text-sm text-slate-500">Fleet Avg</span>
               </div>
             </div>
             <div className="space-y-3">
-              {data.uptimeDistribution.map((item) => (
+              {uptimeData.uptimeDistribution.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center gap-2 text-xl"
@@ -213,39 +259,41 @@ export function UserAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-8">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              Retention Time by User
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                Retention Time by User
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={retentionFilters}
+                fields={["year", "company", "location", "deviceType"]}
+                options={filterOptions}
+                onChange={setRetentionFilters}
+                onReset={() =>
+                  setRetentionFilters({ ...defaultAnalyticsFilters })
+                }
+              />
+            </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.retentionByUser}>
-                <defs>
-                  <linearGradient
-                    id="retention-fill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.75} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
+              <BarChart data={retentionChartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} unit="h" />
                 <Tooltip contentStyle={tooltipStyle()} />
-                <Area
-                  type="monotone"
-                  dataKey="retentionHours"
-                  stroke="#22c55e"
-                  fillOpacity={1}
-                  fill="url(#retention-fill)"
-                  strokeWidth={2.5}
-                  name="Retention (hours)"
-                />
-              </AreaChart>
+                {retentionData.retentionByUserMonthlyStacked.series.map(
+                  (series, index) => (
+                    <Bar
+                      key={series.name}
+                      dataKey={series.name}
+                      fill={retentionPalette[index % retentionPalette.length]}
+                      stackId="retention"
+                      radius={[4, 4, 0, 0]}
+                      name={`${series.name}`}
+                    />
+                  ),
+                )}
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -254,13 +302,22 @@ export function UserAnalyticsDashboard() {
       <section className="grid gap-4 xl:grid-cols-12">
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              Usage (Functionality)
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                Usage (Functionality)
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={usageFilters}
+                fields={["year", "company", "location", "functionality"]}
+                options={filterOptions}
+                onChange={setUsageFilters}
+                onReset={() => setUsageFilters({ ...defaultAnalyticsFilters })}
+              />
+            </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.functionalityUsageByUser}>
+              <BarChart data={usageData.functionalityUsageByUser}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} unit="%" />
@@ -281,13 +338,24 @@ export function UserAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Top Users
               </CardTitle>
-              <Button variant="outline" size="icon-sm">
-                <ArrowUpRight />
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="icon-sm">
+                  <ArrowUpRight />
+                </Button>
+                <AnalyticsChartFilters
+                  filters={topUsersFilters}
+                  fields={["year", "company", "location", "functionality"]}
+                  options={filterOptions}
+                  onChange={setTopUsersFilters}
+                  onReset={() =>
+                    setTopUsersFilters({ ...defaultAnalyticsFilters })
+                  }
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-3">
@@ -298,13 +366,13 @@ export function UserAnalyticsDashboard() {
                 <TabsTrigger value="retention">By Retention</TabsTrigger>
               </TabsList>
               <TabsContent value="usage" className="mt-0">
-                <UserRankList rows={data.topUsersByUsage} />
+                <UserRankList rows={topUsersData.topUsersByUsage} />
               </TabsContent>
               <TabsContent value="uptime" className="mt-0">
-                <UserRankList rows={data.topUsersByUptime} />
+                <UserRankList rows={topUsersData.topUsersByUptime} />
               </TabsContent>
               <TabsContent value="retention" className="mt-0">
-                <UserRankList rows={data.topUsersByRetention} />
+                <UserRankList rows={topUsersData.topUsersByRetention} />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -312,13 +380,24 @@ export function UserAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              Users by Functionality
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                Users by Functionality
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={functionalityFilters}
+                fields={["year", "company", "location"]}
+                options={filterOptions}
+                onChange={setFunctionalityFilters}
+                onReset={() =>
+                  setFunctionalityFilters({ ...defaultAnalyticsFilters })
+                }
+              />
+            </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.usersByFunctionality} layout="vertical">
+              <BarChart data={functionalityData.usersByFunctionality} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis
                   type="number"
@@ -360,7 +439,7 @@ export function UserAnalyticsDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.userTableRows.map((row) => (
+              {summaryData.userTableRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="py-2">
                     <div className="flex items-center gap-2">
@@ -408,7 +487,7 @@ export function UserAnalyticsDashboard() {
           </Table>
           <DashboardTableFooter
             showCount={5}
-            total={data.userTableRows.length}
+            total={summaryData.userTableRows.length}
           />
         </CardContent>
       </Card>

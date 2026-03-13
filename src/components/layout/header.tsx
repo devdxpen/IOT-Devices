@@ -29,6 +29,8 @@ export function Header() {
   const router = useRouter();
 
   const isAdmin = session?.role === "admin";
+  const isCompany = session?.role === "company";
+  const roleLabel = isCompany ? "Company Admin" : "IoT User";
 
   const handleLogout = () => {
     clearDemoSession();
@@ -85,12 +87,15 @@ export function Header() {
           <div className="mx-1 h-8 w-px bg-slate-200" />
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 ring-2 ring-muted">
-              <AvatarImage src="/avatar.jpg" alt={session?.name ?? "Admin"} />
+              <AvatarImage
+                src="/avatar.jpg"
+                alt={session?.displayName ?? "Admin"}
+              />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-slate-900">
-                {session?.name ?? "Admin"}
+                {session?.displayName ?? "Admin"}
               </span>
               <span className="text-xs text-slate-500">Administrator</span>
             </div>
@@ -113,10 +118,12 @@ export function Header() {
       <Image src="/logo.svg" alt="Logo" width={169} height={24} />
 
       <div className="flex items-center gap-3">
-        <Button className="h-9 font-medium shadow-sm">
-          <IoAddOutline className="h-4 w-4" />
-          <span>Add Device</span>
-        </Button>
+        {isCompany && (
+          <Button className="h-9 font-medium shadow-sm">
+            <IoAddOutline className="h-4 w-4" />
+            <span>Add Device</span>
+          </Button>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -176,7 +183,10 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Avatar className="h-9 w-9 ring-2 ring-muted">
-              <AvatarImage src="/avatar.jpg" alt={session?.name ?? "User"} />
+              <AvatarImage
+                src="/avatar.jpg"
+                alt={session?.displayName ?? "User"}
+              />
               <AvatarFallback className="bg-gradient-to-br from-primary-400 to-primary-600 text-sm font-medium text-white">
                 CU
               </AvatarFallback>
@@ -185,9 +195,9 @@ export function Header() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm leading-tight font-semibold text-foreground">
-              {session?.name ?? "Customer User"}
+              {session?.displayName ?? "IoT User"}
             </span>
-            <span className="text-xs text-muted-foreground">Customer</span>
+            <span className="text-xs text-muted-foreground">{roleLabel}</span>
           </div>
         </div>
 

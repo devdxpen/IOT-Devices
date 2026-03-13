@@ -1,5 +1,4 @@
 import { Activity } from "lucide-react";
-import { GlobalFilterBar } from "@/components/filters/global-filter-bar";
 import { analyticsAppConfig } from "@/config/appConfig";
 import { AnalyticsSectionTabs } from "./analytics-section-tabs";
 
@@ -34,7 +33,6 @@ export function AnalyticsShell({
       </header>
 
       <AnalyticsSectionTabs />
-      <GlobalFilterBar />
 
       <div className="space-y-6">{children}</div>
     </div>

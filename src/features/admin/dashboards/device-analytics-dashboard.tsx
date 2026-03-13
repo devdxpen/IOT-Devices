@@ -40,15 +40,14 @@ import {
   type DashboardMetricCard,
   DashboardMetrics,
   DashboardTableFooter,
-  YearSelect,
 } from "@/features/admin/dashboards/admin-dashboard-shared";
+import { AnalyticsChartFilters } from "@/features/admin/dashboards/analytics-chart-filters";
 import {
   type AnalyticsFilters,
   defaultAnalyticsFilters,
   getAnalyticsFilterOptions,
   getDeviceDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-import { AnalyticsFilterBar } from "@/features/admin/dashboards/analytics-filter-bar";
 
 function tooltipStyle() {
   return {
@@ -60,69 +59,90 @@ function tooltipStyle() {
 }
 
 export function DeviceAnalyticsDashboard() {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
-    ...defaultAnalyticsFilters,
-  });
   const [showBandwidth, setShowBandwidth] = useState(true);
   const [showUsage, setShowUsage] = useState(true);
   const [topDeviceAngle, setTopDeviceAngle] = useState<
     "usageScore" | "alarms" | "userLoad"
   >("usageScore");
+  const [bandwidthFilters, setBandwidthFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [growthFilters, setGrowthFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [topDeviceFilters, setTopDeviceFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
 
   const filterOptions = useMemo(() => getAnalyticsFilterOptions(), []);
-  const data = useMemo(() => getDeviceDashboardData(filters), [filters]);
+  const summaryData = useMemo(
+    () => getDeviceDashboardData(defaultAnalyticsFilters),
+    [],
+  );
+  const bandwidthData = useMemo(
+    () => getDeviceDashboardData(bandwidthFilters),
+    [bandwidthFilters],
+  );
+  const growthData = useMemo(
+    () => getDeviceDashboardData(growthFilters),
+    [growthFilters],
+  );
+  const topDeviceData = useMemo(
+    () => getDeviceDashboardData(topDeviceFilters),
+    [topDeviceFilters],
+  );
 
   const topDeviceChartData = useMemo(
     () =>
-      data.topDeviceTableRows.map((row) => ({
+      topDeviceData.topDeviceTableRows.map((row) => ({
         name: row.name,
         usageScore: row.usageScore,
         alarms: row.alarms,
         userLoad: row.userCount,
       })),
-    [data.topDeviceTableRows],
+    [topDeviceData.topDeviceTableRows],
   );
 
   const metricCards: DashboardMetricCard[] = [
     {
       id: "total-devices",
       label: "Total Devices",
-      value: String(data.metrics.totalDevices),
+      value: String(summaryData.metrics.totalDevices),
       icon: Laptop,
       iconClassName: "bg-blue-50 text-blue-500",
     },
     {
       id: "active-devices",
       label: "Active Devices",
-      value: String(data.metrics.activeDevices),
+      value: String(summaryData.metrics.activeDevices),
       icon: Activity,
       iconClassName: "bg-emerald-50 text-emerald-500",
     },
     {
       id: "newly-added",
       label: "Newly Added",
-      value: String(data.metrics.newlyAddedDevices),
+      value: String(summaryData.metrics.newlyAddedDevices),
       icon: PlusSquare,
       iconClassName: "bg-violet-50 text-violet-500",
     },
     {
       id: "inactive-devices",
       label: "Inactive Devices",
-      value: String(data.metrics.inactiveDevices),
+      value: String(summaryData.metrics.inactiveDevices),
       icon: PowerOff,
       iconClassName: "bg-rose-50 text-rose-500",
     },
     {
       id: "faulty-devices",
       label: "Faulty Devices",
-      value: String(data.metrics.faultyDevices),
+      value: String(summaryData.metrics.faultyDevices),
       icon: AlertTriangle,
       iconClassName: "bg-amber-50 text-amber-500",
     },
     {
       id: "total-data-usage",
       label: "Total Data Usage",
-      value: `${data.metrics.totalDataUsageGb} GB`,
+      value: `${summaryData.metrics.totalDataUsageGb} GB`,
       icon: Database,
       iconClassName: "bg-green-50 text-green-500",
     },
@@ -134,23 +154,16 @@ export function DeviceAnalyticsDashboard() {
         Device Analytics
       </h1>
 
-      <AnalyticsFilterBar
-        filters={filters}
-        options={filterOptions}
-        onChange={setFilters}
-        onReset={() => setFilters({ ...defaultAnalyticsFilters })}
-      />
-
       <DashboardMetrics cards={metricCards} columnsClassName="xl:grid-cols-6" />
 
       <section className="grid gap-4 xl:grid-cols-12">
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Device Bandwidth & Usage
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant={showBandwidth ? "default" : "outline"}
                   size="sm"
@@ -165,13 +178,27 @@ export function DeviceAnalyticsDashboard() {
                 >
                   Usage
                 </Button>
-                <YearSelect defaultValue={filters.year} />
+                <AnalyticsChartFilters
+                  filters={bandwidthFilters}
+                  fields={[
+                    "year",
+                    "company",
+                    "location",
+                    "deviceType",
+                    "status",
+                  ]}
+                  options={filterOptions}
+                  onChange={setBandwidthFilters}
+                  onReset={() =>
+                    setBandwidthFilters({ ...defaultAnalyticsFilters })
+                  }
+                />
               </div>
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.bandwidthAndUsageTrend}>
+              <AreaChart data={bandwidthData.bandwidthAndUsageTrend}>
                 <defs>
                   <linearGradient
                     id="bandwidth-fill"
@@ -221,16 +248,22 @@ export function DeviceAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Year Over Year Device Growth
               </CardTitle>
-              <YearSelect defaultValue={filters.year} />
+              <AnalyticsChartFilters
+                filters={growthFilters}
+                fields={["year", "company", "location", "deviceType"]}
+                options={filterOptions}
+                onChange={setGrowthFilters}
+                onReset={() => setGrowthFilters({ ...defaultAnalyticsFilters })}
+              />
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.yearOverYearGrowth}>
+              <BarChart data={growthData.yearOverYearGrowth}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} />
@@ -255,11 +288,11 @@ export function DeviceAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Top Devices
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   size="sm"
                   variant={
@@ -288,6 +321,21 @@ export function DeviceAnalyticsDashboard() {
                 <Button variant="outline" size="icon-sm">
                   <ArrowUpRight />
                 </Button>
+                <AnalyticsChartFilters
+                  filters={topDeviceFilters}
+                  fields={[
+                    "company",
+                    "location",
+                    "deviceType",
+                    "status",
+                    "ownership",
+                  ]}
+                  options={filterOptions}
+                  onChange={setTopDeviceFilters}
+                  onReset={() =>
+                    setTopDeviceFilters({ ...defaultAnalyticsFilters })
+                  }
+                />
               </div>
             </div>
           </CardHeader>
@@ -343,7 +391,7 @@ export function DeviceAnalyticsDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.topDeviceTableRows.map((row) => (
+              {topDeviceData.topDeviceTableRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
                     <input
@@ -421,7 +469,7 @@ export function DeviceAnalyticsDashboard() {
           </Table>
           <DashboardTableFooter
             showCount={5}
-            total={data.topDeviceTableRows.length}
+            total={topDeviceData.topDeviceTableRows.length}
           />
         </CardContent>
       </Card>

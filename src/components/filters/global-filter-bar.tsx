@@ -1,7 +1,8 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Filter, RotateCcw } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { IoInformationCircleOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,8 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { analyticsAppConfig } from "@/config/appConfig";
-import { analyticsFilterOptions, toPlanLabel } from "@/data/mockData";
+import { toPlanLabel } from "@/data/mockData";
 import { useAnalyticsFilters } from "@/hooks/use-analytics-filters";
+import { useDemoSession } from "@/hooks/use-demo-session";
+import { fetchAnalyticsFilterOptions } from "@/lib/api";
 
 const formatLabel = (value: string) =>
   value.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -57,6 +60,26 @@ export function GlobalFilterBar() {
     setFilter: state.setFilter,
     resetFilters: state.resetFilters,
   }));
+  const session = useDemoSession();
+  const filterOptionsQuery = useQuery({
+    queryKey: [
+      "analytics",
+      "filter-options",
+      session?.role,
+      session?.companyId,
+      session?.userId,
+    ],
+    queryFn: fetchAnalyticsFilterOptions,
+    enabled: Boolean(session),
+  });
+  const filterOptions = filterOptionsQuery.data;
+
+  useEffect(() => {
+    if (session?.role === "iot_user") {
+      setFilter("companyId", "all");
+      setFilter("subscriptionPlan", "all");
+    }
+  }, [session?.role, setFilter]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -123,18 +146,20 @@ export function GlobalFilterBar() {
             }))}
           />
 
-          <FilterSelect
-            value={filters.companyId}
-            onChange={(value) => setFilter("companyId", value)}
-            placeholder="Company"
-            options={[
-              { value: "all", label: "All Companies" },
-              ...analyticsFilterOptions.companies.map((company) => ({
-                value: company.id,
-                label: company.name,
-              })),
-            ]}
-          />
+          {session?.role !== "iot_user" && (
+            <FilterSelect
+              value={filters.companyId}
+              onChange={(value) => setFilter("companyId", value)}
+              placeholder="Company"
+              options={[
+                { value: "all", label: "All Companies" },
+                ...(filterOptions?.companies ?? []).map((company) => ({
+                  value: company.id,
+                  label: company.name,
+                })),
+              ]}
+            />
+          )}
 
           <FilterSelect
             value={filters.deviceType}
@@ -144,7 +169,7 @@ export function GlobalFilterBar() {
             placeholder="Device Type"
             options={[
               { value: "all", label: "All Device Types" },
-              ...analyticsFilterOptions.deviceTypes.map((type) => ({
+              ...(filterOptions?.deviceTypes ?? []).map((type) => ({
                 value: type,
                 label: formatLabel(type),
               })),
@@ -157,30 +182,32 @@ export function GlobalFilterBar() {
             placeholder="Location"
             options={[
               { value: "all", label: "All Locations" },
-              ...analyticsFilterOptions.locations.map((location) => ({
+              ...(filterOptions?.locations ?? []).map((location) => ({
                 value: location,
                 label: location,
               })),
             ]}
           />
 
-          <FilterSelect
-            value={filters.subscriptionPlan}
-            onChange={(value) =>
-              setFilter(
-                "subscriptionPlan",
-                value as typeof filters.subscriptionPlan,
-              )
-            }
-            placeholder="Subscription"
-            options={[
-              { value: "all", label: "All Plans" },
-              ...analyticsFilterOptions.subscriptionPlans.map((plan) => ({
-                value: plan,
-                label: toPlanLabel(plan),
-              })),
-            ]}
-          />
+          {session?.role !== "iot_user" && (
+            <FilterSelect
+              value={filters.subscriptionPlan}
+              onChange={(value) =>
+                setFilter(
+                  "subscriptionPlan",
+                  value as typeof filters.subscriptionPlan,
+                )
+              }
+              placeholder="Subscription"
+              options={[
+                { value: "all", label: "All Plans" },
+                ...(filterOptions?.subscriptionPlans ?? []).map((plan) => ({
+                  value: plan,
+                  label: toPlanLabel(plan),
+                })),
+              ]}
+            />
+          )}
         </div>
 
         {filters.dateRange === "custom" && (

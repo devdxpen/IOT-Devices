@@ -17,8 +17,9 @@ import {
   AnalyticsErrorState,
   AnalyticsLoadingState,
 } from "@/components/layout/analytics-state";
+import { DashboardRolePanel } from "@/components/widgets/dashboard-role-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAnalyticsFilters } from "@/hooks/use-analytics-filters";
+import { defaultAnalyticsFilters } from "@/data/mockData";
 import { fetchOverviewAnalytics } from "@/lib/api";
 
 const iconMap = {
@@ -30,14 +31,9 @@ const iconMap = {
 };
 
 export function DashboardOverviewView() {
-  const { filters, resetFilters } = useAnalyticsFilters((state) => ({
-    filters: state.filters,
-    resetFilters: state.resetFilters,
-  }));
-
   const query = useQuery({
-    queryKey: ["analytics", "overview", filters],
-    queryFn: () => fetchOverviewAnalytics(filters),
+    queryKey: ["analytics", "overview", "summary", defaultAnalyticsFilters],
+    queryFn: () => fetchOverviewAnalytics(defaultAnalyticsFilters),
   });
 
   const trendOptions: ApexOptions = {
@@ -98,6 +94,7 @@ export function DashboardOverviewView() {
             iconMap={iconMap}
             columnsClassName="grid-cols-1 sm:grid-cols-2 xl:grid-cols-5"
           />
+          <DashboardRolePanel />
 
           <section className="grid gap-4 xl:grid-cols-12">
             <AnalyticsChartCard
@@ -174,8 +171,8 @@ export function DashboardOverviewView() {
       ) : (
         <AnalyticsErrorState
           title="No overview data found"
-          description="Try broadening filters to load analytics insights."
-          onRetry={resetFilters}
+          description="Analytics data is unavailable at the moment."
+          onRetry={() => query.refetch()}
         />
       )}
     </AnalyticsShell>

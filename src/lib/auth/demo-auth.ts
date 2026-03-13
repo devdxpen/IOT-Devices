@@ -1,61 +1,20 @@
-export type UserRole = "admin" | "customer";
+import { authApi } from "@/lib/mock-api/access-control";
+import type { DemoAccountPreview, SessionUser } from "@/types/access-control";
 
-export interface DemoAccount {
-  role: UserRole;
-  label: string;
-  loginIds: string[];
-  password: string;
-  name: string;
-  email: string;
-  redirectPath: string;
-}
-
-export interface StoredSession {
-  role: UserRole;
-  name: string;
-  email: string;
-  loginId: string;
-  redirectPath: string;
-}
+export type StoredSession = SessionUser;
 
 export const AUTH_SESSION_KEY = "linkediot_demo_session";
 export const AUTH_SESSION_EVENT = "linkediot_auth_session_updated";
 
-export const DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    role: "admin",
-    label: "Admin",
-    loginIds: ["admin", "admin@linkediot.com"],
-    password: "Admin@123",
-    name: "Admin Portal",
-    email: "admin@linkediot.com",
-    redirectPath: "/admin/home",
-  },
-  {
-    role: "customer",
-    label: "Customer",
-    loginIds: ["customer", "customer@linkediot.com"],
-    password: "Customer@123",
-    name: "Customer User",
-    email: "customer@linkediot.com",
-    redirectPath: "/",
-  },
-];
+export function getDemoAccounts(): DemoAccountPreview[] {
+  return authApi.getDemoAccounts();
+}
 
-export function resolveDemoAccount(
+export async function loginDemoAccount(
   loginId: string,
   password: string,
-): DemoAccount | null {
-  const normalizedLoginId = loginId.trim().toLowerCase();
-  const normalizedPassword = password.trim();
-
-  return (
-    DEMO_ACCOUNTS.find(
-      (account) =>
-        account.loginIds.includes(normalizedLoginId) &&
-        account.password === normalizedPassword,
-    ) ?? null
-  );
+): Promise<StoredSession | null> {
+  return authApi.login(loginId, password);
 }
 
 export function readDemoSession(): StoredSession | null {
@@ -69,26 +28,31 @@ export function readDemoSession(): StoredSession | null {
   }
 
   try {
-    return JSON.parse(rawSession) as StoredSession;
+    const parsed = JSON.parse(rawSession) as Partial<StoredSession>;
+    if (
+      !parsed ||
+      typeof parsed.userId !== "string" ||
+      typeof parsed.role !== "string" ||
+      typeof parsed.displayName !== "string" ||
+      typeof parsed.email !== "string" ||
+      typeof parsed.loginId !== "string" ||
+      typeof parsed.redirectPath !== "string" ||
+      !("companyId" in parsed)
+    ) {
+      return null;
+    }
+    return parsed as StoredSession;
   } catch {
     return null;
   }
 }
 
-export function saveDemoSession(account: DemoAccount, loginId: string): void {
+export function saveDemoSession(session: StoredSession): void {
   if (typeof window === "undefined") {
     return;
   }
 
-  const sessionData: StoredSession = {
-    role: account.role,
-    name: account.name,
-    email: account.email,
-    redirectPath: account.redirectPath,
-    loginId: loginId.trim().toLowerCase(),
-  };
-
-  window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sessionData));
+  window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
   window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
 }
 

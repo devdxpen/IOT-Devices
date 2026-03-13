@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
-  DEMO_ACCOUNTS,
-  resolveDemoAccount,
+  getDemoAccounts,
+  loginDemoAccount,
   saveDemoSession,
 } from "@/lib/auth/demo-auth";
+import type { UserRole } from "@/types/access-control";
 
 const loginSchema = z.object({
   email: z.string().min(1, { message: "Login ID or email is required" }),
@@ -48,8 +49,18 @@ export function LoginForm() {
   });
 
   const router = useRouter();
+  const demoAccounts = useMemo(() => getDemoAccounts(), []);
+  const groupedDemoAccounts = useMemo(() => {
+    const grouped = new Map<UserRole, typeof demoAccounts>();
+    for (const account of demoAccounts) {
+      const roleAccounts = grouped.get(account.role) ?? [];
+      roleAccounts.push(account);
+      grouped.set(account.role, roleAccounts);
+    }
+    return grouped;
+  }, [demoAccounts]);
 
-  function onSubmit(data: LogInValues) {
+  async function onSubmit(data: LogInValues) {
     if (loginMethod === "otp") {
       router.push("/verify-otp");
       return;
@@ -61,15 +72,15 @@ export function LoginForm() {
       return;
     }
 
-    const account = resolveDemoAccount(data.email, password);
-    if (!account) {
+    const session = await loginDemoAccount(data.email, password);
+    if (!session) {
       form.setError("email", { message: "Invalid login ID or password" });
       form.setError("password", { message: "Invalid login ID or password" });
       return;
     }
 
-    saveDemoSession(account, data.email);
-    router.push(account.redirectPath);
+    saveDemoSession(session);
+    router.push(session.redirectPath);
   }
 
   return (
@@ -80,14 +91,31 @@ export function LoginForm() {
 
       <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-slate-700">
         <p className="mb-2 font-semibold text-blue-700">Demo Credentials</p>
-        <div className="space-y-1">
-          {DEMO_ACCOUNTS.map((account) => (
-            <p key={account.role}>
-              {account.label}:{" "}
-              <span className="font-semibold">{account.loginIds[0]}</span> /{" "}
-              <span className="font-semibold">{account.password}</span>
-            </p>
-          ))}
+        <div className="space-y-3">
+          {(["admin", "company", "iot_user"] as UserRole[]).map((role) => {
+            const accounts = groupedDemoAccounts.get(role) ?? [];
+            if (!accounts.length) {
+              return null;
+            }
+            return (
+              <div key={role} className="space-y-1">
+                <p className="font-semibold text-slate-800">
+                  {role === "admin"
+                    ? "Admin"
+                    : role === "company"
+                      ? "Company"
+                      : "IoT User"}
+                </p>
+                {accounts.map((account) => (
+                  <p key={`${role}-${account.loginId}`}>
+                    <span className="font-semibold">{account.loginId}</span> /{" "}
+                    <span className="font-semibold">{account.password}</span> (
+                    {account.displayName})
+                  </p>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -103,7 +131,7 @@ export function LoginForm() {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter admin/customer login ID"
+                    placeholder="Enter login ID (admin/company/iot user)"
                     {...field}
                     className={
                       form.formState.errors.email
@@ -185,9 +213,14 @@ export function LoginForm() {
 
           <Button
             type="submit"
+            disabled={form.formState.isSubmitting}
             className="w-full bg-[#1DA1F2] text-white hover:bg-[#1A91DA]"
           >
-            {loginMethod === "password" ? "Log In" : "Send OTP"}
+            {loginMethod === "password"
+              ? form.formState.isSubmitting
+                ? "Logging In..."
+                : "Log In"
+              : "Send OTP"}
           </Button>
 
           <div className="mt-4 text-center">

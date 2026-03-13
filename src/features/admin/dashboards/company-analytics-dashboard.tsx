@@ -10,8 +10,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -39,8 +37,8 @@ import {
   type DashboardMetricCard,
   DashboardMetrics,
   DashboardTableFooter,
-  YearSelect,
 } from "@/features/admin/dashboards/admin-dashboard-shared";
+import { AnalyticsChartFilters } from "@/features/admin/dashboards/analytics-chart-filters";
 import {
   type AnalyticsFilters,
   defaultAnalyticsFilters,
@@ -48,7 +46,6 @@ import {
   getAnalyticsFilterOptions,
   getCompanyDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-import { AnalyticsFilterBar } from "@/features/admin/dashboards/analytics-filter-bar";
 
 function chartTooltipStyle() {
   return {
@@ -60,45 +57,96 @@ function chartTooltipStyle() {
 }
 
 export function CompanyAnalyticsDashboard() {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
+  const [usersSplitFilters, setUsersSplitFilters] = useState<AnalyticsFilters>({
     ...defaultAnalyticsFilters,
   });
+  const [retentionFilters, setRetentionFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [usageFilters, setUsageFilters] = useState<AnalyticsFilters>({
+    ...defaultAnalyticsFilters,
+  });
+  const [topCompaniesFilters, setTopCompaniesFilters] =
+    useState<AnalyticsFilters>({
+      ...defaultAnalyticsFilters,
+    });
+  const [functionalityFilters, setFunctionalityFilters] =
+    useState<AnalyticsFilters>({
+      ...defaultAnalyticsFilters,
+    });
+
   const filterOptions = useMemo(() => getAnalyticsFilterOptions(), []);
-  const data = useMemo(() => getCompanyDashboardData(filters), [filters]);
+  const summaryData = useMemo(
+    () => getCompanyDashboardData(defaultAnalyticsFilters),
+    [],
+  );
+  const usersSplitData = useMemo(
+    () => getCompanyDashboardData(usersSplitFilters),
+    [usersSplitFilters],
+  );
+  const retentionData = useMemo(
+    () => getCompanyDashboardData(retentionFilters),
+    [retentionFilters],
+  );
+  const usageData = useMemo(
+    () => getCompanyDashboardData(usageFilters),
+    [usageFilters],
+  );
+  const topCompaniesData = useMemo(
+    () => getCompanyDashboardData(topCompaniesFilters),
+    [topCompaniesFilters],
+  );
+  const functionalityData = useMemo(
+    () => getCompanyDashboardData(functionalityFilters),
+    [functionalityFilters],
+  );
+
+  const retentionPalette = ["#1d4ed8", "#1e40af", "#2563eb", "#3b82f6", "#60a5fa"];
+  const retentionChartData = useMemo(() => {
+    const months = retentionData.retentionByCompanyMonthlyStacked.months;
+    const series = retentionData.retentionByCompanyMonthlyStacked.series;
+    return months.map((month, index) => {
+      const row: Record<string, string | number> = { month };
+      series.forEach((item) => {
+        row[item.name] = item.data[index] ?? 0;
+      });
+      return row;
+    });
+  }, [retentionData.retentionByCompanyMonthlyStacked]);
 
   const metricCards: DashboardMetricCard[] = [
     {
       id: "total-companies",
       label: "Total Companies",
-      value: String(data.totalCompanies),
+      value: String(summaryData.totalCompanies),
       icon: Building2,
       iconClassName: "bg-blue-50 text-blue-500",
     },
     {
       id: "users-under-company",
       label: "User Under Company",
-      value: String(data.totalUsersUnderCompany),
+      value: String(summaryData.totalUsersUnderCompany),
       icon: Users,
       iconClassName: "bg-sky-50 text-sky-500",
     },
     {
       id: "devices-under-company",
       label: "Device Under Company",
-      value: String(data.totalDevicesUnderCompany),
+      value: String(summaryData.totalDevicesUnderCompany),
       icon: Laptop,
       iconClassName: "bg-emerald-50 text-emerald-500",
     },
     {
       id: "retention-time",
       label: "Retention Time",
-      value: formatMinutesAsDuration(data.avgRetentionMinutes),
+      value: formatMinutesAsDuration(summaryData.avgRetentionMinutes),
       icon: Timer,
       iconClassName: "bg-violet-50 text-violet-500",
     },
     {
       id: "usage",
       label: "Usage",
-      value: `${data.avgUsagePercent}%`,
+      value: `${summaryData.avgUsagePercent}%`,
       icon: Database,
       iconClassName: "bg-amber-50 text-amber-500",
     },
@@ -110,21 +158,25 @@ export function CompanyAnalyticsDashboard() {
         Company Analytics
       </h1>
 
-      <AnalyticsFilterBar
-        filters={filters}
-        options={filterOptions}
-        onChange={setFilters}
-        onReset={() => setFilters({ ...defaultAnalyticsFilters })}
-      />
-
       <DashboardMetrics cards={metricCards} columnsClassName="xl:grid-cols-5" />
 
       <section className="grid gap-4 xl:grid-cols-12">
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              User Under Company
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                User Under Company
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={usersSplitFilters}
+                fields={["year", "location", "functionality"]}
+                options={filterOptions}
+                onChange={setUsersSplitFilters}
+                onReset={() =>
+                  setUsersSplitFilters({ ...defaultAnalyticsFilters })
+                }
+              />
+            </div>
           </CardHeader>
           <CardContent className="px-2 py-4">
             <div className="grid items-center gap-4 sm:grid-cols-[220px_1fr]">
@@ -132,14 +184,14 @@ export function CompanyAnalyticsDashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={data.usersUnderCompanySplit}
+                      data={usersSplitData.usersUnderCompanySplit}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={58}
                       outerRadius={84}
                       stroke="none"
                     >
-                      {data.usersUnderCompanySplit.map((entry) => (
+                      {usersSplitData.usersUnderCompanySplit.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
@@ -147,13 +199,13 @@ export function CompanyAnalyticsDashboard() {
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-semibold text-slate-900">
-                    {data.totalUsersUnderCompany}
+                    {usersSplitData.totalUsersUnderCompany}
                   </span>
                   <span className="text-sm text-slate-500">Users</span>
                 </div>
               </div>
               <div className="space-y-3">
-                {data.usersUnderCompanySplit.map((item) => (
+                {usersSplitData.usersUnderCompanySplit.map((item) => (
                   <div
                     key={item.name}
                     className="flex items-center gap-2 text-xl"
@@ -174,42 +226,41 @@ export function CompanyAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-8">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-3xl text-slate-900">
                 Retention Time by Company
               </CardTitle>
-              <YearSelect defaultValue={filters.year} />
+              <AnalyticsChartFilters
+                filters={retentionFilters}
+                fields={["year", "location", "deviceType"]}
+                options={filterOptions}
+                onChange={setRetentionFilters}
+                onReset={() =>
+                  setRetentionFilters({ ...defaultAnalyticsFilters })
+                }
+              />
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.retentionByCompany}>
-                <defs>
-                  <linearGradient
-                    id="company-retention-fill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.75} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
+              <BarChart data={retentionChartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} unit="h" />
                 <Tooltip contentStyle={chartTooltipStyle()} />
-                <Area
-                  type="monotone"
-                  dataKey="retentionHours"
-                  stroke="#22c55e"
-                  fillOpacity={1}
-                  fill="url(#company-retention-fill)"
-                  strokeWidth={2.5}
-                  name="Retention (hours)"
-                />
-              </AreaChart>
+                {retentionData.retentionByCompanyMonthlyStacked.series.map(
+                  (series, index) => (
+                    <Bar
+                      key={series.name}
+                      dataKey={series.name}
+                      fill={retentionPalette[index % retentionPalette.length]}
+                      stackId="retention"
+                      radius={[4, 4, 0, 0]}
+                      name={`${series.name}`}
+                    />
+                  ),
+                )}
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -218,11 +269,20 @@ export function CompanyAnalyticsDashboard() {
       <section className="grid gap-4 xl:grid-cols-12">
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">Usage</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">Usage</CardTitle>
+              <AnalyticsChartFilters
+                filters={usageFilters}
+                fields={["year", "location", "functionality"]}
+                options={filterOptions}
+                onChange={setUsageFilters}
+                onReset={() => setUsageFilters({ ...defaultAnalyticsFilters })}
+              />
+            </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.usageByCompany}>
+              <BarChart data={usageData.usageByCompany}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} unit="%" />
@@ -235,12 +295,23 @@ export function CompanyAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              Device Under Company
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                Device Under Company
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={topCompaniesFilters}
+                fields={["year", "location", "deviceType"]}
+                options={filterOptions}
+                onChange={setTopCompaniesFilters}
+                onReset={() =>
+                  setTopCompaniesFilters({ ...defaultAnalyticsFilters })
+                }
+              />
+            </div>
           </CardHeader>
           <CardContent className="space-y-3 p-3">
-            {data.topCompanies.map((company) => (
+            {topCompaniesData.topCompanies.map((company) => (
               <div
                 key={company.rank}
                 className="grid grid-cols-[32px_1fr_auto] items-center gap-3 rounded-md border border-slate-200 px-3 py-2"
@@ -282,23 +353,34 @@ export function CompanyAnalyticsDashboard() {
 
         <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <CardTitle className="text-3xl text-slate-900">
-              Devices by Functionality
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-3xl text-slate-900">
+                Devices by Functionality
+              </CardTitle>
+              <AnalyticsChartFilters
+                filters={functionalityFilters}
+                fields={["year", "location", "functionality"]}
+                options={filterOptions}
+                onChange={setFunctionalityFilters}
+                onReset={() =>
+                  setFunctionalityFilters({ ...defaultAnalyticsFilters })
+                }
+              />
+            </div>
           </CardHeader>
           <CardContent className="grid items-center gap-4 py-4 sm:grid-cols-[180px_1fr]">
             <div className="relative mx-auto h-[170px] w-[170px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={data.devicesByFunctionality}
+                    data={functionalityData.devicesByFunctionality}
                     dataKey="value"
                     nameKey="name"
                     innerRadius={38}
                     outerRadius={68}
                     stroke="none"
                   >
-                    {data.devicesByFunctionality.map((entry) => (
+                    {functionalityData.devicesByFunctionality.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
@@ -307,7 +389,7 @@ export function CompanyAnalyticsDashboard() {
               </ResponsiveContainer>
             </div>
             <div className="space-y-3">
-              {data.devicesByFunctionality.map((item) => (
+              {functionalityData.devicesByFunctionality.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center gap-2 text-xl"
@@ -348,7 +430,7 @@ export function CompanyAnalyticsDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.companyTableRows.map((row) => (
+              {summaryData.companyTableRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="py-2">
                     <div className="flex items-center gap-2">
@@ -384,7 +466,7 @@ export function CompanyAnalyticsDashboard() {
           </Table>
           <DashboardTableFooter
             showCount={5}
-            total={data.companyTableRows.length}
+            total={summaryData.companyTableRows.length}
           />
         </CardContent>
       </Card>
