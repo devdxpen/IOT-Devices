@@ -21,6 +21,7 @@ import {
   IoChevronForwardOutline,
   IoCodeSlashOutline,
   IoGridOutline,
+  IoHeadsetOutline,
   IoHelpCircleOutline,
   IoHomeOutline,
   IoLayersOutline,
@@ -71,6 +72,12 @@ const adminPrimaryNavItems = [
     icon: IoHelpCircleOutline,
     label: "Help",
     href: "/admin/help",
+  },
+  {
+    key: "support",
+    icon: IoHeadsetOutline,
+    label: "Support",
+    href: "/admin/support/tickets",
   },
   {
     key: "configuration",

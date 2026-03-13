@@ -1,30 +1,42 @@
-import { PhoneCall, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { PhoneCall, Search, Filter, MoreVertical, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 const mockCalls = [
   {
-    id: "CAL-001",
-    user: "Robert Bosch",
-    phone: "+1 234 567 890",
-    time: "10:30 AM",
-    date: "Today",
+    id: "CAL-8801",
+    deviceName: "Smart Gateway V3",
+    contactNo: "+1 234 567 890",
+    subject: "Firmware update failed",
+    callingAgent: "Sarah Connor",
+    createdAt: "2024-03-20",
     status: "Pending",
   },
   {
-    id: "CAL-002",
-    user: "Maria Garcia",
-    phone: "+49 123 456 789",
-    time: "02:15 PM",
-    date: "Today",
+    id: "CAL-8802",
+    deviceName: "Temp Sensor Pro",
+    contactNo: "+49 123 456 789",
+    subject: "Sensor calibration help",
+    callingAgent: "Alex River",
+    createdAt: "2024-03-19",
     status: "Completed",
   },
   {
-    id: "CAL-003",
-    user: "Lee Sung",
-    phone: "+82 10 1234 5678",
-    time: "09:00 AM",
-    date: "Yesterday",
+    id: "CAL-8803",
+    deviceName: "Industrial Router X",
+    contactNo: "+82 10 1234 5678",
+    subject: "VPN tunnel configuration",
+    callingAgent: "John Wick",
+    createdAt: "2024-03-18",
     status: "Cancelled",
   },
 ];
@@ -32,57 +44,85 @@ const mockCalls = [
 export default function CallRequestsPage() {
   return (
     <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Call Requests</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage scheduled callback requests from users.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Call Requests</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage scheduled callback requests from users.</p>
+        </div>
+        <Button className="bg-[#2596be] hover:bg-[#1d7fa1]">
+          <PhoneCall className="h-4 w-4 mr-2" />
+          Schedule Call
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockCalls.map((call) => (
-          <div key={call.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
-            <div className="flex items-start justify-between mb-4">
-              <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
-                <PhoneCall className="h-5 w-5 text-[#2596be]" />
-              </div>
-              <Badge 
-                variant="outline"
-                className={cn(
-                  "text-[10px] uppercase font-bold tracking-wider",
-                  call.status === "Pending" ? "text-amber-600 bg-amber-50 border-amber-200" :
-                  call.status === "Completed" ? "text-emerald-600 bg-emerald-50 border-emerald-200" :
-                  "text-rose-600 bg-rose-50 border-rose-200"
-                )}
-              >
-                {call.status}
-              </Badge>
-            </div>
+      <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input placeholder="Search calls..." className="pl-10" />
+        </div>
+        <Button variant="outline" className="gap-2">
+          <Filter className="h-4 w-4" />
+          More Filters
+        </Button>
+      </div>
 
-            <div className="space-y-1">
-              <h3 className="font-bold text-slate-900">{call.user}</h3>
-              <p className="text-sm text-slate-500">{call.phone}</p>
-            </div>
-
-            <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {call.time}
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                {call.date}
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-2">
-              <Button className="flex-1 h-9 bg-[#2596be] hover:bg-[#1d7fa1] text-xs">
-                Call Now
-              </Button>
-              <Button variant="outline" className="h-9 text-xs">
-                Reschedule
-              </Button>
-            </div>
-          </div>
-        ))}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50/50">
+              <TableHead className="font-semibold text-slate-700">Call ID</TableHead>
+              <TableHead className="font-semibold text-slate-700">IoT Device Name</TableHead>
+              <TableHead className="font-semibold text-slate-700">Contact No</TableHead>
+              <TableHead className="font-semibold text-slate-700">Subject</TableHead>
+              <TableHead className="font-semibold text-slate-700">Calling Agent</TableHead>
+              <TableHead className="font-semibold text-slate-700">Created Date</TableHead>
+              <TableHead className="font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="font-semibold text-slate-700 text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {mockCalls.map((call) => (
+              <TableRow key={call.id} className="hover:bg-slate-50/30">
+                <TableCell className="font-medium text-[#2596be]">{call.id}</TableCell>
+                <TableCell className="font-medium text-slate-700">{call.deviceName}</TableCell>
+                <TableCell className="text-slate-600 font-medium">{call.contactNo}</TableCell>
+                <TableCell className="text-slate-500 text-sm">{call.subject}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                        {call.callingAgent.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <span className="text-sm text-slate-600">{call.callingAgent}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-slate-500 text-sm">{call.createdAt}</TableCell>
+                <TableCell>
+                  <Badge 
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] uppercase font-bold tracking-wider",
+                      call.status === "Pending" ? "text-amber-600 bg-amber-50 border-amber-200" :
+                      call.status === "Completed" ? "text-emerald-600 bg-emerald-50 border-emerald-200" :
+                      "text-rose-600 bg-rose-50 border-rose-200"
+                    )}
+                  >
+                    {call.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#2596be] hover:bg-blue-50">
+                            <Phone className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

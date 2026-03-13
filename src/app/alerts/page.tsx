@@ -124,7 +124,7 @@ function AlertCard({
 
       <div className="flex items-start gap-3">
         <div className="relative mt-1">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm" />
+          <div className="h-9 w-9 rounded-lg bg-linear-to-br from-orange-400 to-orange-500 shadow-sm" />
           <span className="absolute -bottom-0.5 -right-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-white bg-white">
             <span className={`h-2.5 w-2.5 rounded-full ${style.chip}`} />
           </span>
@@ -254,7 +254,7 @@ export default function AlertsPage() {
   const applyAcknowledgement = () => {
     const timestamp = new Date().toISOString();
     const trimmedComment = ackComment.trim();
-    if (trimmedComment.length < 8) {
+    if (trimmedComment.length === 0) {
       return;
     }
     // In a real app this would be sent to backend as audit trail (user, time, comment)
@@ -655,11 +655,7 @@ export default function AlertsPage() {
                 placeholder="E.g. Checked device, temperature back in range."
                 className="min-h-[80px] text-xs"
               />
-              {ackComment.trim().length > 0 && ackComment.trim().length < 8 && (
-                <p className="pt-1 text-[10px] text-red-500">
-                  Please enter at least 8 characters for audit comment.
-                </p>
-              )}
+
             </div>
             <p className="text-[10px] text-slate-400">
               Note: In production, each acknowledge action should capture user
@@ -680,7 +676,7 @@ export default function AlertsPage() {
             <Button
               size="sm"
               className="h-8 rounded-full px-3 text-[11px]"
-              disabled={ackComment.trim().length < 8}
+              disabled={ackComment.trim().length === 0}
               onClick={applyAcknowledgement}
             >
               Confirm &amp; log

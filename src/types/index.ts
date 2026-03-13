@@ -40,3 +40,23 @@ export type {
 } from "./models";
 export type { Stats } from "./stats";
 export type { ViewMode } from "./ui";
+export type {
+  SupportAgent,
+  SupportChannel,
+  SupportQueueScope,
+  SupportRequester,
+  SupportTicket,
+  SupportTicketAttachment,
+  SupportTicketCreateInput,
+  SupportTicketMessage,
+  SupportTicketPriority,
+  SupportTicketSla,
+  SupportTicketSummary,
+  SupportTicketStatus,
+} from "./support";
+export type {
+  DemoRequest,
+  DemoRequestCreateInput,
+  DemoRequestStatus,
+  DemoRequestSummary,
+} from "./demo";

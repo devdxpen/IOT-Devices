@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminHomeDashboard } from "@/features/admin/admin-home-dashboard";
+import { AdminSupportTickets } from "@/features/admin/admin-support-tickets";
 import { CompanyAnalyticsDashboard } from "@/features/admin/dashboards/company-analytics-dashboard";
 import { DeviceAnalyticsDashboard } from "@/features/admin/dashboards/device-analytics-dashboard";
 import { UserAnalyticsDashboard } from "@/features/admin/dashboards/user-analytics-dashboard";
@@ -83,6 +84,10 @@ export function AdminPortal({
         description="This dashboard section is ready. Share exact content and we will build this screen with the same detailed UI, charts, and tables."
       />
     );
+  }
+
+  if (primarySection === "support") {
+    return <AdminSupportTickets />;
   }
 
   const title = primaryTitles[primarySection] ?? "Admin Module";

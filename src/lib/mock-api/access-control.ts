@@ -339,6 +339,17 @@ const authAccounts: AuthAccount[] = [
     companyId: "cmp-aqua",
     redirectPath: "/dashboard",
   },
+  {
+    id: "auth-iot-7",
+    role: "iot_user",
+    loginIds: ["iot.nora", "nora.lin@fieldops.io"],
+    password: "Iot@123",
+    displayName: "Nora Lin",
+    email: "nora.lin@fieldops.io",
+    userId: "iot-independent-001",
+    companyId: null,
+    redirectPath: "/dashboard",
+  },
 ];
 
 function ensureSession(session: SessionUser | null | undefined): SessionUser {
