@@ -19,11 +19,18 @@ export interface Device {
   model: string;
   firmwareVersion: string;
   macAddress: string;
-  password: string;
+  password?: string;
   lastDataTimestamp: string;
   alarms: number;
   data: DeviceReading;
   users: number;
+  assignedUser?: {
+    name: string;
+    avatarUrl?: string;
+  };
+  tags?: string[];
+  colorFlag?: "red" | "yellow" | "green" | "none";
+  isOnline: boolean;
 }
 
 export interface DeviceSummary {

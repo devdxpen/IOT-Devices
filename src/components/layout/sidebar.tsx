@@ -40,6 +40,7 @@ import {
 import { type NavItem, navItems } from "@/config/navigation";
 import { useDemoSession } from "@/hooks/use-demo-session";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/store/ui-store";
 
 const adminPrimaryNavItems = [
   { key: "home", icon: IoHomeOutline, label: "Home", href: "/admin/home" },
@@ -278,16 +279,21 @@ function CustomerSidebar({
   role?: "company" | "iot_user";
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const hiddenForIoTUser = new Set([
-    "/alerts",
-    "/device",
-    "/groups",
-    "/template-management",
-  ]);
-  const visibleItems =
-    role === "iot_user"
-      ? navItems.filter((item) => !hiddenForIoTUser.has(item.href))
-      : navItems;
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { isMobileSidebarOpen, closeMobileSidebar } = useUIStore();
+
+  const toggleExpand = (label: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(label) ? prev.filter((i) => i !== label) : [...prev, label],
+    );
+  };
+
+  const visibleItems = navItems.filter((item) => {
+    if (item.label === "Support" && role === "iot_user") {
+      return true;
+    }
+    return true;
+  });
 
   const sections = {
     main: visibleItems.filter((item) => item.section === "main"),
@@ -296,104 +302,103 @@ function CustomerSidebar({
   };
 
   return (
+    <>
+      {/* Mobile Overlay */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+
+      {/* Sidebar Content */}
     <aside
       className={cn(
-        "sticky top-0 z-40 flex h-screen flex-col border-r border-slate-200/60 bg-linear-to-b from-slate-50 to-white shadow-sm transition-all duration-300 ease-in-out",
-        isExpanded ? "w-64" : "w-[72px]",
+        "fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-secondary-200 bg-secondary-50 shadow-sm transition-all duration-300 ease-in-out md:relative md:translate-x-0",
+        isExpanded ? "w-72" : "w-[80px]",
+        isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
-      <div className="flex items-center justify-between border-b border-slate-200/60 p-4">
-        <div
-          className={cn(
-            "flex items-center gap-3 transition-opacity duration-200",
-            isExpanded ? "opacity-100" : "w-0 opacity-0",
-          )}
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-blue-600 text-sm font-bold text-white">
-            LI
+      <div className="p-3 h-16 border-b border-secondary-200 bg-secondary-50 relative">
+        <div className={cn("flex items-center gap-3 transition-opacity duration-300", !isExpanded && "opacity-0 invisible hidden md:flex", isMobileSidebarOpen && !isExpanded && "opacity-100 visible flex")}>
+          <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/20 active:scale-95 transition-all">
+            <IoGridOutline className="h-5 w-5 text-white" />
           </div>
-          <span className="whitespace-nowrap font-semibold text-slate-800">
-            LinkedIOT
-          </span>
+          <div className="flex flex-col">
+            <span className="text-lg font-black text-secondary-900 leading-tight">LinkedIOT</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Platform v2.0</span>
+          </div>
         </div>
-
+        
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="group ml-auto rounded-lg p-2 transition-colors hover:bg-slate-100"
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 rounded-lg p-2 transition-all hover:bg-secondary-100 active:scale-95 hidden md:block",
+            isExpanded ? "right-4" : "left-1/2 -translate-x-1/2"
+          )}
           aria-label="Toggle Sidebar"
         >
           {isExpanded ? (
-            <IoChevronBackOutline className="h-5 w-5 text-slate-600 group-hover:text-slate-900" />
+            <IoChevronBackOutline className="h-5 w-5 text-secondary-500 hover:text-secondary-900" />
           ) : (
-            <IoChevronForwardOutline className="h-5 w-5 text-slate-600 group-hover:text-slate-900" />
+            <IoChevronForwardOutline className="h-5 w-5 text-secondary-500 hover:text-secondary-900" />
           )}
+        </button>
+
+         {/* Mobile close button */}
+         <button
+          type="button"
+          onClick={closeMobileSidebar}
+          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg p-2 transition-all hover:bg-secondary-100 active:scale-95 md:hidden"
+        >
+          <IoChevronBackOutline className="h-5 w-5 text-secondary-500 hover:text-secondary-900" />
         </button>
       </div>
 
-      <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="flex flex-col gap-6">
-          <div className="space-y-1">
-            {isExpanded && (
-              <h3 className="mb-2 px-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Main
-              </h3>
-            )}
-            {sections.main.map((item) => (
-              <CustomerNavLink
-                key={item.href}
-                item={item}
-                isActive={
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href))
-                }
-                isExpanded={isExpanded}
-              />
-            ))}
-          </div>
-
-          <div className="space-y-1">
-            {isExpanded && (
-              <h3 className="mb-2 px-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Analytics
-              </h3>
-            )}
-            {!isExpanded && <div className="my-2 border-t border-slate-200" />}
-            {sections.secondary.map((item) => (
-              <CustomerNavLink
-                key={item.href}
-                item={item}
-                isActive={
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href))
-                }
-                isExpanded={isExpanded}
-              />
-            ))}
-          </div>
-
-          <div className="space-y-1">
-            {isExpanded && (
-              <h3 className="mb-2 px-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Support
-              </h3>
-            )}
-            {!isExpanded && <div className="my-2 border-t border-slate-200" />}
-            {sections.support.map((item) => (
-              <CustomerNavLink
-                key={item.href}
-                item={item}
-                isActive={
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href))
-                }
-                isExpanded={isExpanded}
-              />
-            ))}
-          </div>
+      <ScrollArea className="flex-1 px-4 py-6">
+        <nav className="flex flex-col gap-8">
+          {Object.entries(sections).map(([name, items]) => {
+            if (items.length === 0) return null;
+            return (
+              <div key={name} className="space-y-1">
+                {(isExpanded || isMobileSidebarOpen) && (
+                  <h3 className="mb-3 px-3 text-[11px] font-bold tracking-widest text-secondary-400 uppercase">
+                    {name === "main" ? "Navigation" : name}
+                  </h3>
+                )}
+                {!(isExpanded || isMobileSidebarOpen) && name !== "main" && (
+                  <div className="my-4 border-t border-secondary-200" />
+                )}
+                <div className="space-y-1">
+                  {items.map((item) => (
+                    <CustomerNavLink
+                      key={item.href}
+                      item={item}
+                      role={role}
+                      isActive={
+                        pathname === item.href ||
+                        (item.href !== "/home" && pathname.startsWith(item.href))
+                      }
+                      isExpanded={isExpanded || isMobileSidebarOpen}
+                      isItemExpanded={expandedItems.includes(item.label)}
+                      onToggleExpand={() => toggleExpand(item.label)}
+                      onClickLink={() => {
+                        // Close sidebar on mobile when a link without sub-items is clicked
+                        if (!item.subItems?.length) {
+                          closeMobileSidebar();
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </nav>
       </ScrollArea>
     </aside>
+    </>
   );
 }
 
@@ -401,37 +406,98 @@ function CustomerNavLink({
   item,
   isActive,
   isExpanded,
+  isItemExpanded,
+  onToggleExpand,
+  onClickLink,
+  role,
 }: {
   item: NavItem;
   isActive: boolean;
   isExpanded: boolean;
+  isItemExpanded: boolean;
+  onToggleExpand: (label: string) => void;
+  onClickLink?: () => void;
+  role?: string;
 }) {
+  const pathname = usePathname();
   const Icon = item.icon;
+  const { closeMobileSidebar } = useUIStore();
+
+  const subItems =
+    item.label === "Support" && role === "iot_user"
+      ? item.subItems?.filter((si) => 
+          ["Help", "Knowledge Base", "FAQ", "Support Tickets"].includes(si.label)
+        )
+      : item.subItems;
+
+  const hasSubItems = subItems && subItems.length > 0;
+
   const content = (
-    <Link
-      href={item.href}
-      className={cn(
-        "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200",
-        isActive
-          ? "bg-blue-500 text-white shadow-md shadow-blue-500/20"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-        !isExpanded && "justify-center",
-      )}
-    >
-      <div className="relative">
-        <Icon className="h-5 w-5 transition-transform group-hover:scale-110" />
-        {item.badge && item.badge > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-            {item.badge}
+    <div className="space-y-1">
+      <Link
+        href={hasSubItems ? "#" : item.href}
+        onClick={(e) => {
+          if (hasSubItems) {
+            e.preventDefault();
+            onToggleExpand(item.label);
+          } else {
+             onClickLink?.();
+          }
+        }}
+        className={cn(
+          "group relative flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-300",
+          isActive && !hasSubItems
+            ? "bg-white text-sky-500 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-secondary-200"
+            : "text-secondary-500 hover:bg-secondary-100 hover:text-secondary-900",
+          !isExpanded && "justify-center",
+        )}
+      >
+        <div className="relative">
+          <Icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive && "text-sky-500")} />
+          {item.badge && item.badge > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-secondary-50">
+              {item.badge}
+            </span>
+          )}
+        </div>
+        {isExpanded && (
+          <span className={cn("flex-1 whitespace-nowrap text-sm font-semibold", isActive && "text-secondary-900")}>
+            {item.label}
           </span>
         )}
-      </div>
-      {isExpanded && (
-        <span className="flex-1 whitespace-nowrap text-sm font-medium">
-          {item.label}
-        </span>
+        {isExpanded && hasSubItems && (
+          <IoChevronForwardOutline
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-300",
+              isItemExpanded ? "rotate-90" : "opacity-40",
+            )}
+          />
+        )}
+      </Link>
+
+      {isExpanded && hasSubItems && isItemExpanded && (
+        <div className="ml-9 mt-1 space-y-1 border-l-2 border-secondary-200 pl-4">
+          {subItems.map((subItem) => {
+            const isSubActive = pathname === subItem.href;
+            return (
+              <Link
+                key={subItem.href}
+                href={subItem.href}
+                onClick={closeMobileSidebar}
+                className={cn(
+                  "block py-2 text-sm transition-colors",
+                  isSubActive
+                    ? "font-bold text-sky-500"
+                    : "font-medium text-secondary-500 hover:text-secondary-900",
+                )}
+              >
+                {subItem.label}
+              </Link>
+            );
+          })}
+        </div>
       )}
-    </Link>
+    </div>
   );
 
   if (!isExpanded) {
@@ -439,7 +505,12 @@ function CustomerNavLink({
       <Tooltip>
         <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent side="right" sideOffset={8}>
-          {item.label}
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold">{item.label}</p>
+            {hasSubItems && (
+              <p className="text-[10px] opacity-70">{subItems.length} items</p>
+            )}
+          </div>
         </TooltipContent>
       </Tooltip>
     );

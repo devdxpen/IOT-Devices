@@ -84,11 +84,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="relative grid h-screen grid-cols-[auto_1fr] overflow-hidden">
+    <div className="relative flex h-screen w-full overflow-hidden bg-slate-50/50">
       <Sidebar />
-      <div className="flex h-screen w-full flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className="flex h-[calc(100vh-64px)] flex-col overflow-auto px-6 pt-6 pb-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>
