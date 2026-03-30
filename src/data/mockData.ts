@@ -232,117 +232,85 @@ export function buildDeviceAnalyticsData(
   session?: SessionUser | null,
 ): DeviceAnalyticsData {
   const context = getFilterContext(filters, session);
-  const categories = getTimeCategories(filters.dateRange, {
-    start: context.timeWindowStart,
-    end: context.timeWindowEnd,
-  });
+  const monthCategories = monthLabelsFromCurrentYear();
 
-  const totalDevices = context.devices.length;
+  const totalDevices = context.devices.length || 705;
   const activeDevices = context.devices.filter(
     (device) => device.status === "active",
-  ).length;
-  const newlyAddedDevices = context.devices.filter((device) =>
-    isDateInRange(device.createdAt, {
-      start: context.timeWindowStart,
-      end: context.timeWindowEnd,
-    }),
   ).length;
   const inactiveDevices = context.devices.filter(
     (device) => device.status === "inactive" || device.status === "disabled",
   ).length;
-  const faultyDevices = context.devices.filter(
-    (device) => device.status === "faulty",
-  ).length;
-  const totalDataUsageGb = sum(context.devices.map((device) => device.dataUsageGb));
+  const totalUsers = context.users.length || 1;
+  const avgDevicesPerUser = Number((totalDevices / totalUsers).toFixed(1));
+  const avgRevenue = 142.5;
+  const avgUptime = 99.82;
+  const totalAlerts = sum(context.devices.map((device) => device.alertsCount));
+  const alarmsPerDevice = totalDevices > 0
+    ? Number((totalAlerts / totalDevices).toFixed(2))
+    : 0.45;
 
-  const avgBandwidth =
-    average(context.devices.map((device) => device.bandwidthMbps)) || 18;
-  const avgUsage =
-    average(context.devices.map((device) => device.dataUsageGb)) || 42;
+  const totalDataUsageMb = Math.round(
+    sum(context.devices.map((device) => device.dataUsageGb)) * 1024,
+  ) || 10987;
 
   const topDeviceRows = buildDeviceTableRows(context.devices, context.users);
 
   return {
     kpis: [
       {
-        id: "total-devices",
-        label: "Total Devices",
+        id: "devices",
+        label: "Devices",
         value: formatCompactNumber(totalDevices),
-        delta: percentageDelta(totalDevices, Math.max(totalDevices - 2, 1)),
+        delta: "6.42%",
+        trend: "up",
+        helperText: `Total Devices ${formatCompactNumber(totalDataUsageMb > 999 ? totalDataUsageMb : 10987)}`,
+      },
+      {
+        id: "avg-devices-per-user",
+        label: "Average devices \\ user",
+        value: String(avgDevicesPerUser),
+        delta: "12%",
         trend: "up",
       },
       {
-        id: "active-devices",
-        label: "Active Devices",
-        value: formatCompactNumber(activeDevices),
-        delta: percentageDelta(activeDevices, Math.max(activeDevices - 1, 1)),
+        id: "avg-revenue-per-device",
+        label: "Average revenue \\ Device",
+        value: `₹${avgRevenue.toFixed(2)}`,
+        delta: "4.5%",
         trend: "up",
-        tone: "success",
       },
       {
-        id: "newly-added",
-        label: "Newly Added Devices",
-        value: formatCompactNumber(newlyAddedDevices),
-        delta: percentageDelta(
-          newlyAddedDevices,
-          Math.max(newlyAddedDevices - 1, 1),
-        ),
-        trend: "up",
-        tone: "info",
-      },
-      {
-        id: "inactive-devices",
-        label: "Inactive Devices",
-        value: formatCompactNumber(inactiveDevices),
-        delta: percentageDelta(inactiveDevices, Math.max(inactiveDevices + 1, 1)),
-        trend: "down",
-        tone: "warning",
-      },
-      {
-        id: "faulty-devices",
-        label: "Faulty Devices",
-        value: formatCompactNumber(faultyDevices),
-        delta: percentageDelta(faultyDevices, Math.max(faultyDevices + 1, 1)),
+        id: "avg-uptime",
+        label: "Average uptime (%)",
+        value: `${avgUptime}%`,
+        delta: "0.02%",
         trend: "down",
         tone: "danger",
       },
       {
-        id: "total-data-usage",
-        label: "Total Data Usage",
-        value: formatDataUsage(totalDataUsageGb),
-        delta: "+5.8%",
+        id: "alarms-per-device",
+        label: "Alarms \\ Device",
+        value: String(alarmsPerDevice),
+        delta: "18%",
         trend: "up",
-        tone: "info",
       },
     ],
-    bandwidthUsageTrend: {
-      categories,
+    devicesDataTrend: {
+      categories: monthCategories,
       series: [
         {
-          name: "Bandwidth (Mbps)",
-          data: buildTrendValues(categories.length, avgBandwidth, {
-            growth: Math.max(1, avgBandwidth * 0.04),
-            volatility: Math.max(2, avgBandwidth * 0.14),
+          name: "Data Usage (MB)",
+          data: buildTrendValues(12, Math.round(totalDataUsageMb / 12), {
+            growth: 0.5,
+            volatility: 3,
             floor: 1,
           }),
         },
       ],
     },
-    dataUsageTrend: {
-      categories,
-      series: [
-        {
-          name: "Data Usage (GB)",
-          data: buildTrendValues(categories.length, avgUsage, {
-            growth: Math.max(1, avgUsage * 0.08),
-            volatility: Math.max(6, avgUsage * 0.2),
-            floor: 2,
-          }),
-        },
-      ],
-    },
     yearOverYearGrowth: {
-      categories: monthLabelsFromCurrentYear(),
+      categories: monthCategories,
       series: [
         {
           name: "Active Devices",
@@ -362,16 +330,42 @@ export function buildDeviceAnalyticsData(
         },
       ],
     },
-    activeVsDisabledDevices: {
-      labels: ["Active", "Disabled", "Faulty"],
-      series: [activeDevices, inactiveDevices, faultyDevices],
+    topIndustries: {
+      labels: ["Manufacturing", "Energy", "Logistics", "Others"],
+      series: [42, 25, 18, 15],
     },
-    topDevicesByDataUsage: {
-      categories: topDeviceRows.map((row) => row.deviceName),
+    brandsAndModels: [
+      { brand: "Blue Star", model: "AC-001", count: 2400 },
+      { brand: "Samsung", model: "AC-001", count: 1900 },
+      { brand: "Google", model: "Pixel 8", count: 1500 },
+      { brand: "Xiaomi", model: "Mi 13", count: 1200 },
+      { brand: "Oppo", model: "Reno 13", count: 900 },
+    ],
+    regions: [
+      { name: "North America", count: 3400 },
+      { name: "Europe", count: 3400 },
+      { name: "Asia", count: 5700 },
+      { name: "South America", count: 1200 },
+      { name: "Africa", count: 900 },
+    ],
+    yearOverYearGrowthArea: {
+      categories: monthCategories,
       series: [
         {
-          name: "Data Usage (GB)",
-          data: topDeviceRows.map((row) => row.dataUsageGb),
+          name: "Now",
+          data: buildTrendValues(12, 15000, {
+            growth: 400,
+            volatility: 2000,
+            floor: 5000,
+          }),
+        },
+        {
+          name: "Past",
+          data: buildTrendValues(12, 10000, {
+            growth: 300,
+            volatility: 1500,
+            floor: 3000,
+          }),
         },
       ],
     },

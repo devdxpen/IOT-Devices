@@ -62,8 +62,8 @@ export function DevicesManagement() {
   const filteredDevices = useMemo(() => {
     return mockDevices.filter(device => 
       device.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      device.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      device.macAddress.toLowerCase().includes(searchQuery.toLowerCase())
+      (device.serialNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (device.macAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     );
   }, [searchQuery]);
 

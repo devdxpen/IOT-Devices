@@ -1,4 +1,4 @@
-import { Device, DeviceSummary } from "./device";
+import { Device } from "./device";
 
 export interface GroupSummary {
   id: string;
@@ -10,7 +10,7 @@ export interface GroupSummary {
   validatePeriodEnd: string;
   alarms: number;
   users: { name: string; avatarUrl: string }[];
-  devices: DeviceSummary[];
+  devices: Device[];
   /**
    * Ownership of this group relative to the current user.
    * - "own": created/managed by current user or their org

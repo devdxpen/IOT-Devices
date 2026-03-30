@@ -2,23 +2,24 @@
 
 import {
   Activity,
-  AlertTriangle,
   ArrowUpRight,
-  Database,
+  ChevronDown,
+  ChevronUp,
   Eye,
   Laptop,
   Pencil,
-  PlusSquare,
-  PowerOff,
   Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -37,15 +38,12 @@ import {
 } from "@/components/ui/table";
 import {
   AvatarGroup,
-  type DashboardMetricCard,
-  DashboardMetrics,
   DashboardTableFooter,
 } from "@/features/admin/dashboards/admin-dashboard-shared";
-import { AnalyticsChartFilters } from "@/features/admin/dashboards/analytics-chart-filters";
 import {
-  type AnalyticsFilters,
+  type BrandModelEntry,
+  type RegionEntry,
   defaultAnalyticsFilters,
-  getAnalyticsFilterOptions,
   getDeviceDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
 
@@ -58,93 +56,246 @@ function tooltipStyle() {
   };
 }
 
-export function DeviceAnalyticsDashboard() {
-  const [showBandwidth, setShowBandwidth] = useState(true);
-  const [showUsage, setShowUsage] = useState(true);
-  const [topDeviceAngle, setTopDeviceAngle] = useState<
-    "usageScore" | "alarms" | "userLoad"
-  >("usageScore");
-  const [bandwidthFilters, setBandwidthFilters] = useState<AnalyticsFilters>({
-    ...defaultAnalyticsFilters,
-  });
-  const [growthFilters, setGrowthFilters] = useState<AnalyticsFilters>({
-    ...defaultAnalyticsFilters,
-  });
-  const [topDeviceFilters, setTopDeviceFilters] = useState<AnalyticsFilters>({
-    ...defaultAnalyticsFilters,
-  });
+function formatCount(n: number) {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
 
-  const filterOptions = useMemo(() => getAnalyticsFilterOptions(), []);
+// ---------------------------------------------------------------------------
+// KPI Card
+// ---------------------------------------------------------------------------
+
+interface KpiCardProps {
+  label: string;
+  value: string;
+  delta: string;
+  trendUp: boolean;
+  icon: React.ElementType;
+  iconBgClass: string;
+  helper?: string;
+}
+
+function KpiCard({
+  label,
+  value,
+  delta,
+  trendUp,
+  icon: Icon,
+  iconBgClass,
+  helper,
+}: KpiCardProps) {
+  return (
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardContent className="flex items-start justify-between p-4">
+        <div className="space-y-1.5">
+          <p className="text-sm text-slate-500">{label}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold leading-none text-slate-900">
+              {value}
+            </span>
+            <span
+              className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium ${
+                trendUp
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-red-50 text-red-600"
+              }`}
+            >
+              {trendUp ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+              {delta}
+            </span>
+          </div>
+          {helper && (
+            <p className="text-xs text-slate-400">{helper}</p>
+          )}
+        </div>
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${iconBgClass}`}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Top Industries (donut)
+// ---------------------------------------------------------------------------
+
+function TopIndustriesCard({
+  data,
+}: {
+  data: Array<{ name: string; value: number; color: string }>;
+}) {
+  return (
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 px-4 py-3">
+        <CardTitle className="text-base font-semibold text-slate-900">
+          Top Industries
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex items-center gap-6 px-4 py-5">
+        <div className="w-[140px] shrink-0">
+          <ResponsiveContainer width="100%" height={140}>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                innerRadius={35}
+                outerRadius={60}
+                strokeWidth={0}
+              >
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle()} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="space-y-2.5">
+          {data.map((entry) => (
+            <div key={entry.name} className="flex items-center gap-2 text-sm">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-slate-600">{entry.name}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Brands & Models
+// ---------------------------------------------------------------------------
+
+function BrandsModelsCard({ items }: { items: BrandModelEntry[] }) {
+  const maxCount = Math.max(...items.map((i) => i.count));
+
+  return (
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 px-4 py-3">
+        <CardTitle className="text-base font-semibold text-slate-900">
+          Brands &amp; Models
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 px-4 py-5">
+        {items.map((item) => (
+          <div key={`${item.brand}-${item.model}`} className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-700">
+                <span className="font-medium">{item.brand}</span>
+                <span className="mx-1.5 text-slate-400">•</span>
+                <span className="text-slate-500">{item.model}</span>
+              </span>
+              <span className="text-sm font-medium text-slate-500">
+                {formatCount(item.count)}
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-100">
+              <div
+                className="h-2 rounded-full bg-blue-500"
+                style={{ width: `${(item.count / maxCount) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Regions
+// ---------------------------------------------------------------------------
+
+function RegionsCard({ items }: { items: RegionEntry[] }) {
+  return (
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 px-4 py-3">
+        <CardTitle className="text-base font-semibold text-slate-900">
+          Regions
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 px-4 py-5">
+        {items.map((item) => (
+          <div
+            key={item.name}
+            className="flex items-center justify-between text-sm"
+          >
+            <span className="text-slate-700">{item.name}</span>
+            <span className="font-medium text-slate-500">
+              {formatCount(item.count)}
+            </span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main Dashboard
+// ---------------------------------------------------------------------------
+
+export function DeviceAnalyticsDashboard() {
   const summaryData = useMemo(
     () => getDeviceDashboardData(defaultAnalyticsFilters),
     [],
   );
-  const bandwidthData = useMemo(
-    () => getDeviceDashboardData(bandwidthFilters),
-    [bandwidthFilters],
-  );
-  const growthData = useMemo(
-    () => getDeviceDashboardData(growthFilters),
-    [growthFilters],
-  );
-  const topDeviceData = useMemo(
-    () => getDeviceDashboardData(topDeviceFilters),
-    [topDeviceFilters],
-  );
 
-  const topDeviceChartData = useMemo(
-    () =>
-      topDeviceData.topDeviceTableRows.map((row) => ({
-        name: row.name,
-        usageScore: row.usageScore,
-        alarms: row.alarms,
-        userLoad: row.userCount,
-      })),
-    [topDeviceData.topDeviceTableRows],
-  );
+  const { metrics } = summaryData;
 
-  const metricCards: DashboardMetricCard[] = [
+  const kpiCards: KpiCardProps[] = [
     {
-      id: "total-devices",
-      label: "Total Devices",
-      value: String(summaryData.metrics.totalDevices),
+      label: "Devices",
+      value: String(metrics.totalDevices),
+      delta: "6.42%",
+      trendUp: true,
       icon: Laptop,
-      iconClassName: "bg-blue-50 text-blue-500",
+      iconBgClass: "bg-blue-50 text-blue-500",
+      helper: `Total Data ${formatCount(metrics.totalDataUsageMb)} MB`,
     },
     {
-      id: "active-devices",
-      label: "Active Devices",
-      value: String(summaryData.metrics.activeDevices),
+      label: "Average devices \\ user",
+      value: String(metrics.avgDevicesPerUser),
+      delta: "12%",
+      trendUp: true,
       icon: Activity,
-      iconClassName: "bg-emerald-50 text-emerald-500",
+      iconBgClass: "bg-emerald-50 text-emerald-500",
     },
     {
-      id: "newly-added",
-      label: "Newly Added",
-      value: String(summaryData.metrics.newlyAddedDevices),
-      icon: PlusSquare,
-      iconClassName: "bg-violet-50 text-violet-500",
+      label: "Average revenue \\ Device",
+      value: `₹${metrics.avgRevenuePerDevice.toFixed(2)}`,
+      delta: "4.5%",
+      trendUp: true,
+      icon: Laptop,
+      iconBgClass: "bg-violet-50 text-violet-500",
     },
     {
-      id: "inactive-devices",
-      label: "Inactive Devices",
-      value: String(summaryData.metrics.inactiveDevices),
-      icon: PowerOff,
-      iconClassName: "bg-rose-50 text-rose-500",
+      label: "Average uptime (%)",
+      value: `${metrics.avgUptime}%`,
+      delta: "0.02%",
+      trendUp: false,
+      icon: Activity,
+      iconBgClass: "bg-rose-50 text-rose-500",
     },
     {
-      id: "faulty-devices",
-      label: "Faulty Devices",
-      value: String(summaryData.metrics.faultyDevices),
-      icon: AlertTriangle,
-      iconClassName: "bg-amber-50 text-amber-500",
-    },
-    {
-      id: "total-data-usage",
-      label: "Total Data Usage",
-      value: `${summaryData.metrics.totalDataUsageGb} GB`,
-      icon: Database,
-      iconClassName: "bg-green-50 text-green-500",
+      label: "Alarms \\ Device",
+      value: String(metrics.alarmsPerDevice),
+      delta: "18%",
+      trendUp: true,
+      icon: Laptop,
+      iconBgClass: "bg-amber-50 text-amber-500",
     },
   ];
 
@@ -154,116 +305,72 @@ export function DeviceAnalyticsDashboard() {
         Device Analytics
       </h1>
 
-      <DashboardMetrics cards={metricCards} columnsClassName="xl:grid-cols-6" />
+      {/* KPI Row */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {kpiCards.map((card) => (
+          <KpiCard key={card.label} {...card} />
+        ))}
+      </section>
 
-      <section className="grid gap-4 xl:grid-cols-12">
-        <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
+      {/* Devices Data + Year Device Growth */}
+      <section className="grid gap-4 xl:grid-cols-2">
+        <Card className="border-slate-200 bg-white shadow-sm">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-3xl text-slate-900">
-                Device Bandwidth & Usage
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold text-slate-900">
+                Devices Data
               </CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant={showBandwidth ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowBandwidth((prev) => !prev)}
-                >
-                  Bandwidth
-                </Button>
-                <Button
-                  variant={showUsage ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowUsage((prev) => !prev)}
-                >
-                  Usage
-                </Button>
-                <AnalyticsChartFilters
-                  filters={bandwidthFilters}
-                  fields={[
-                    "year",
-                    "company",
-                    "location",
-                    "deviceType",
-                    "status",
-                  ]}
-                  options={filterOptions}
-                  onChange={setBandwidthFilters}
-                  onReset={() =>
-                    setBandwidthFilters({ ...defaultAnalyticsFilters })
-                  }
-                />
-              </div>
+              <span className="text-xs text-slate-400">
+                Total Data : {formatCount(metrics.totalDataUsageMb)} MB
+              </span>
             </div>
           </CardHeader>
-          <CardContent className="h-[280px] px-2 py-4">
+          <CardContent className="h-[260px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={bandwidthData.bandwidthAndUsageTrend}>
+              <AreaChart data={summaryData.devicesDataTrend}>
                 <defs>
                   <linearGradient
-                    id="bandwidth-fill"
+                    id="devices-data-fill"
                     x1="0"
                     y1="0"
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.65} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.05} />
-                  </linearGradient>
-                  <linearGradient id="usage-fill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
+                    <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="Mbps" />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${v} MB`}
+                />
                 <Tooltip contentStyle={tooltipStyle()} />
-                {showBandwidth && (
-                  <Area
-                    type="monotone"
-                    dataKey="bandwidthMbps"
-                    stroke="#22c55e"
-                    fillOpacity={1}
-                    fill="url(#bandwidth-fill)"
-                    strokeWidth={2}
-                    name="Bandwidth"
-                  />
-                )}
-                {(showUsage || !showBandwidth) && (
-                  <Area
-                    type="monotone"
-                    dataKey="deviceUsageMbps"
-                    stroke="#ef4444"
-                    fillOpacity={1}
-                    fill="url(#usage-fill)"
-                    strokeWidth={2}
-                    name="Device Usage"
-                  />
-                )}
+                <Area
+                  type="monotone"
+                  dataKey="dataUsageMb"
+                  stroke="#1E88E5"
+                  fillOpacity={1}
+                  fill="url(#devices-data-fill)"
+                  strokeWidth={2}
+                  name="Data Usage"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
+        <Card className="border-slate-200 bg-white shadow-sm">
           <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-3xl text-slate-900">
-                Year Over Year Device Growth
-              </CardTitle>
-              <AnalyticsChartFilters
-                filters={growthFilters}
-                fields={["year", "company", "location", "deviceType"]}
-                options={filterOptions}
-                onChange={setGrowthFilters}
-                onReset={() => setGrowthFilters({ ...defaultAnalyticsFilters })}
-              />
-            </div>
+            <CardTitle className="text-base font-semibold text-slate-900">
+              Year Device Growth
+            </CardTitle>
           </CardHeader>
-          <CardContent className="h-[280px] px-2 py-4">
+          <CardContent className="h-[260px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={growthData.yearOverYearGrowth}>
+              <BarChart data={summaryData.yearOverYearGrowth}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} />
@@ -271,92 +378,15 @@ export function DeviceAnalyticsDashboard() {
                 <Bar
                   dataKey="activeDevices"
                   stackId="growth"
-                  fill="#22c55e"
+                  fill="#4CAF50"
                   radius={[4, 4, 0, 0]}
                   name="Active Devices"
                 />
                 <Bar
                   dataKey="disabled"
                   stackId="growth"
-                  fill="#ef4444"
+                  fill="#EF5350"
                   name="Disabled"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
-          <CardHeader className="border-b border-slate-200 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-3xl text-slate-900">
-                Top Devices
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  variant={
-                    topDeviceAngle === "usageScore" ? "default" : "outline"
-                  }
-                  onClick={() => setTopDeviceAngle("usageScore")}
-                >
-                  Usage
-                </Button>
-                <Button
-                  size="sm"
-                  variant={topDeviceAngle === "alarms" ? "default" : "outline"}
-                  onClick={() => setTopDeviceAngle("alarms")}
-                >
-                  Alarms
-                </Button>
-                <Button
-                  size="sm"
-                  variant={
-                    topDeviceAngle === "userLoad" ? "default" : "outline"
-                  }
-                  onClick={() => setTopDeviceAngle("userLoad")}
-                >
-                  Users
-                </Button>
-                <Button variant="outline" size="icon-sm">
-                  <ArrowUpRight />
-                </Button>
-                <AnalyticsChartFilters
-                  filters={topDeviceFilters}
-                  fields={[
-                    "company",
-                    "location",
-                    "deviceType",
-                    "status",
-                    "ownership",
-                  ]}
-                  options={filterOptions}
-                  onChange={setTopDeviceFilters}
-                  onReset={() =>
-                    setTopDeviceFilters({ ...defaultAnalyticsFilters })
-                  }
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topDeviceChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  domain={
-                    topDeviceAngle === "userLoad" ? [0, "auto"] : [0, 100]
-                  }
-                  unit={topDeviceAngle === "usageScore" ? "%" : ""}
-                />
-                <Tooltip contentStyle={tooltipStyle()} />
-                <Bar
-                  dataKey={topDeviceAngle}
-                  fill="#2c9ae6"
-                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -364,10 +394,71 @@ export function DeviceAnalyticsDashboard() {
         </Card>
       </section>
 
+      {/* Top Industries + Brands & Models + Regions */}
+      <section className="grid gap-4 xl:grid-cols-3">
+        <TopIndustriesCard data={summaryData.topIndustries} />
+        <BrandsModelsCard items={summaryData.brandsAndModels} />
+        <RegionsCard items={summaryData.regions} />
+      </section>
+
+      {/* Year over Year Growth (area) */}
+      <Card className="border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-200 px-4 py-3">
+          <CardTitle className="text-base font-semibold text-slate-900">
+            Year over year growth
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="h-[260px] px-2 py-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={summaryData.yearOverYearGrowthArea}>
+              <defs>
+                <linearGradient id="yoy-now" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="yoy-past" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#90A4AE" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#90A4AE" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) =>
+                  v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
+                }
+              />
+              <Tooltip contentStyle={tooltipStyle()} />
+              <Area
+                type="monotone"
+                dataKey="now"
+                stroke="#1E88E5"
+                fillOpacity={1}
+                fill="url(#yoy-now)"
+                strokeWidth={2}
+                name="Now"
+              />
+              <Area
+                type="monotone"
+                dataKey="past"
+                stroke="#90A4AE"
+                fillOpacity={1}
+                fill="url(#yoy-past)"
+                strokeWidth={2}
+                name="Past"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Top 5 Devices Table */}
       <Card className="border-slate-200 bg-white shadow-sm">
         <CardHeader className="border-b border-slate-200 px-4 py-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-3xl text-slate-900">
+            <CardTitle className="text-base font-semibold text-slate-900">
               Top 5 Devices
             </CardTitle>
             <Button variant="outline" size="icon-sm">
@@ -381,17 +472,19 @@ export function DeviceAnalyticsDashboard() {
               <TableRow className="bg-slate-50/70 hover:bg-slate-50/70">
                 <TableHead className="w-[36px]" />
                 <TableHead className="text-sm">Device</TableHead>
-                <TableHead className="text-sm">Serial Number</TableHead>
-                <TableHead className="text-sm">Category</TableHead>
-                <TableHead className="text-sm">User</TableHead>
-                <TableHead className="text-sm">Manufacturer & Model</TableHead>
-                <TableHead className="text-sm">Firmware Version</TableHead>
-                <TableHead className="text-sm">MAC Address</TableHead>
+                <TableHead className="text-sm">Template</TableHead>
+                <TableHead className="text-sm">Owner</TableHead>
+                <TableHead className="text-sm">Access Users</TableHead>
+                <TableHead className="text-sm">Last Data Timestamp</TableHead>
+                <TableHead className="text-sm">Alarms</TableHead>
+                <TableHead className="text-sm">Data 1</TableHead>
+                <TableHead className="text-sm">Data 2</TableHead>
+                <TableHead className="text-sm">Data 3</TableHead>
                 <TableHead className="text-sm">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {topDeviceData.topDeviceTableRows.map((row) => (
+              {summaryData.topDeviceTableRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
                     <input
@@ -409,19 +502,21 @@ export function DeviceAnalyticsDashboard() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-xl font-medium text-slate-800">
+                        <p className="text-sm font-medium text-slate-800">
                           {row.name}
                         </p>
-                        <p className="text-sm text-slate-500">{row.type}</p>
+                        <p className="text-xs text-slate-500">{row.type}</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xl text-slate-700">
-                    {row.serialNumber}
-                  </TableCell>
                   <TableCell>
-                    <p className="text-xl text-slate-700">{row.category}</p>
-                    <p className="text-sm text-slate-500">{row.location}</p>
+                    <p className="text-sm text-slate-700">
+                      {row.manufacturerModel}
+                    </p>
+                    <p className="text-xs text-slate-500">{row.category}</p>
+                  </TableCell>
+                  <TableCell className="text-sm text-slate-700">
+                    {row.assignedUser}
                   </TableCell>
                   <TableCell>
                     <AvatarGroup
@@ -429,14 +524,23 @@ export function DeviceAnalyticsDashboard() {
                       extraCount={Math.max(row.userCount - 1, 0)}
                     />
                   </TableCell>
-                  <TableCell className="max-w-[220px] truncate text-xl text-slate-700">
-                    {row.manufacturerModel}
+                  <TableCell className="text-sm text-slate-500">
+                    27-07-2025 10:45 AM
                   </TableCell>
-                  <TableCell className="text-xl text-slate-700">
-                    {row.firmwareVersion}
+                  <TableCell className="text-sm text-slate-700">
+                    {row.alarms}
                   </TableCell>
-                  <TableCell className="text-xl text-slate-700">
-                    {row.macAddress}
+                  <TableCell>
+                    <p className="text-sm font-medium text-slate-700">50</p>
+                    <p className="text-xs text-slate-400">T1</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-sm font-medium text-slate-700">90</p>
+                    <p className="text-xs text-slate-400">T2</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-sm font-medium text-slate-700">90</p>
+                    <p className="text-xs text-slate-400">T3</p>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -469,7 +573,7 @@ export function DeviceAnalyticsDashboard() {
           </Table>
           <DashboardTableFooter
             showCount={5}
-            total={topDeviceData.topDeviceTableRows.length}
+            total={summaryData.topDeviceTableRows.length}
           />
         </CardContent>
       </Card>

@@ -6,7 +6,7 @@ import {
   ModalTitle,
   ModalDescription,
 } from "@/components/ui/modal";
-import { DeviceSummary } from "@/types";
+import { Device } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 interface MoveToPositionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  device: DeviceSummary | null;
+  device: Device | null;
   totalItems: number;
   onMove: (
     deviceId: string,
@@ -36,6 +36,7 @@ export function MoveToPositionModal({
   >("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPriority, setSelectedPriority] = useState<Device["colorFlag"] | null>(null);
 
   // Initialize input when modal opens with the device's current values
   useEffect(() => {

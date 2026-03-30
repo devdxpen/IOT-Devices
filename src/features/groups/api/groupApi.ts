@@ -4,7 +4,7 @@ import {
   GroupAlarm,
   GroupFilterState,
 } from "@/types/group";
-import { Device } from "@/types";
+import { Device } from "@/types/device";
 
 // ─── Simulated Delay ───
 const delay = (ms = 400) => new Promise((res) => setTimeout(res, ms));
@@ -650,7 +650,7 @@ export async function fetchAvailableDevices(search = ""): Promise<Device[]> {
   return allAvailableDevices.filter(
     (d) =>
       d.name.toLowerCase().includes(s) ||
-      d.deviceType.toLowerCase().includes(s),
+      (d.deviceType?.toLowerCase().includes(s) ?? false),
   );
 }
 

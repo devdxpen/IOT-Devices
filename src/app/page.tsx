@@ -2,8 +2,11 @@ import { ArrowRight, ExternalLink, MapPin, QrCode } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { DeviceGroup } from "@/types/group";
+import { Device } from "@/types/device";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockDeviceSummaries } from "@/data/mockDeviceSummaries";
+import { mockDevices } from "@/data/mockDevices";
+import { mockGroups } from "@/data/mockGroups";
 import { DeviceAccessManagement } from "@/features/device-access/components/DeviceAccessManagement";
 import { HomeAnalyticsSection } from "@/features/home/components/home-analytics-section";
 import { fetchTemplates } from "@/lib/mock-api/templates";
@@ -71,7 +74,7 @@ export default async function HomePage() {
       ...template,
       proximityScore: Math.max(55, 92 - index * 14),
     }));
-  const recentDevices = mockDeviceSummaries.slice(0, 3);
+    const recent = [...mockDevices].slice(0, 3);
 
   const androidQr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(appLinks.android)}`;
   const iosQr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(appLinks.ios)}`;
@@ -187,7 +190,7 @@ export default async function HomePage() {
                 Last Viewed Devices (Top 3) With Actual Values
               </h3>
               <div className="space-y-3">
-                {recentDevices.map((device) => (
+                {recent.map((device) => (
                   <div
                     key={device.id}
                     className="rounded-lg border border-slate-200 bg-white px-4 py-3"
@@ -198,7 +201,7 @@ export default async function HomePage() {
                           {device.name}
                         </p>
                         <p className="text-xs text-slate-600">
-                          {device.type} | {device.location}
+                          {device.category} | {device.location}
                         </p>
                       </div>
                       <span
@@ -213,13 +216,13 @@ export default async function HomePage() {
                     </div>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                       <div className="rounded-md bg-cyan-50 p-2 text-cyan-800">
-                        T1: {device.data.t1}
+                        T1: {device.data?.t1 ?? 0}
                       </div>
                       <div className="rounded-md bg-amber-50 p-2 text-amber-800">
-                        T2: {device.data.t2}
+                        T2: {device.data?.t2 ?? 0}
                       </div>
                       <div className="rounded-md bg-violet-50 p-2 text-violet-800">
-                        T3: {device.data.t3}
+                        T3: {device.data?.t3 ?? 0}
                       </div>
                     </div>
                   </div>
@@ -238,6 +241,7 @@ export default async function HomePage() {
                       {index + 1}
                     </span>
                     <div className="flex-1">
+                      <div className="text-secondary-500 font-bold mb-3 px-1">{mockDevices.length} Total Devices</div>
                       <p className="text-sm font-bold text-slate-900">
                         {step.title}
                       </p>

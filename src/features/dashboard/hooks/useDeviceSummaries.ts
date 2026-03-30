@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { DeviceSummary } from "@/types";
+import { Device } from "@/types";
 import { getDeviceSummaries } from "../api/deviceApi";
 
 export function useDeviceSummaries() {
-  const [data, setData] = useState<DeviceSummary[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchDevices = () => {
@@ -12,13 +12,13 @@ export function useDeviceSummaries() {
     getDeviceSummaries()
       .then((result) => {
         if (isMounted) {
-          setData(result);
+          setDevices(result);
           setIsLoading(false);
         }
       })
       .catch(() => {
         if (isMounted) {
-          setData([]);
+          setDevices([]);
           setIsLoading(false);
         }
       });
@@ -35,5 +35,5 @@ export function useDeviceSummaries() {
     return cleanup;
   }, []);
 
-  return { data, isLoading, refetch: fetchDevices };
+  return { data: devices, isLoading, refetch: fetchDevices };
 }

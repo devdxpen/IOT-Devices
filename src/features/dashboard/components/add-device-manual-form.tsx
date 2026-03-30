@@ -52,7 +52,11 @@ export function AddDeviceManualForm({
         manufacturer: brandName,
         model: modelNo,
         macAddress: macAddress || "00:00:00:00:00:00",
-        type: "Manual Device",
+        brandName: brandName,
+        industry: "General",
+        category: "Sensor",
+        cluster: "Cluster A",
+        group: "Default Group",
       });
       toast.success("Device added successfully");
       onSuccess();

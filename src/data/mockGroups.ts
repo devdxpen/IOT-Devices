@@ -1,7 +1,7 @@
 import { DeviceGroup, GroupUser, GroupAlarm } from "@/types/group";
 import { Device } from "@/types";
 
-const securityDevices: Device[] = [
+const securityDevices = [
   {
     id: "sec-1",
     name: "SENSOR-001",
@@ -59,9 +59,9 @@ const securityDevices: Device[] = [
     data: { t1: 21.0, t2: 22.0, t3: 20.5 },
     users: 2,
   },
-];
+] as unknown as Device[];
 
-const powerDevices: Device[] = [
+const powerDevices = [
   {
     id: "pow-1",
     name: "SENSOR-001",
@@ -119,9 +119,9 @@ const powerDevices: Device[] = [
     data: { t1: 42.0, t2: 43.0, t3: 41.5 },
     users: 3,
   },
-];
+] as unknown as Device[];
 
-const environmentalDevices: Device[] = [
+const environmentalDevices = [
   {
     id: "env-1",
     name: "TEMP-001",
@@ -160,9 +160,9 @@ const environmentalDevices: Device[] = [
     data: { t1: 55.0, t2: 56.0, t3: 54.0 },
     users: 2,
   },
-];
+] as unknown as Device[];
 
-const networkDevices: Device[] = [
+const networkDevices = [
   {
     id: "net-1",
     name: "ROUTER-001",
@@ -201,7 +201,7 @@ const networkDevices: Device[] = [
     data: { t1: 32.0, t2: 33.0, t3: 31.0 },
     users: 3,
   },
-];
+] as unknown as Device[];
 
 export const mockGroups: DeviceGroup[] = [
   {

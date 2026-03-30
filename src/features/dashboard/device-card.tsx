@@ -1,14 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye } from "lucide-react";
-import { DeviceSummary } from "@/types";
+import { Device } from "@/types";
 import { Button } from "@/components/ui/button";
 import { DeviceInfoRow } from "./device-info-row";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface DeviceCardProps {
-  device: DeviceSummary;
+  device: Device;
   isSelected?: boolean;
   onSelect?: (checked: boolean) => void;
 }
@@ -124,7 +124,7 @@ export function DeviceCard({
             <div className="flex items-center gap-6">
               <div className="flex flex-col">
                 <span className="text-base font-semibold text-neutral-800 leading-none mb-1">
-                  {device.data?.t1}
+                  {device.data?.t1 ?? "--"}
                 </span>
                 <span className="text-[10px] font-medium text-neutral-500 uppercase">
                   T1
@@ -132,7 +132,7 @@ export function DeviceCard({
               </div>
               <div className="flex flex-col">
                 <span className="text-base font-semibold text-neutral-800 leading-none mb-1">
-                  {device.data?.t2}
+                  {device.data?.t2 ?? "--"}
                 </span>
                 <span className="text-[10px] font-medium text-neutral-500 uppercase">
                   T2
@@ -140,7 +140,7 @@ export function DeviceCard({
               </div>
               <div className="flex flex-col">
                 <span className="text-base font-semibold text-neutral-800 leading-none mb-1">
-                  {device.data?.t3}
+                  {device.data?.t3 ?? "--"}
                 </span>
                 <span className="text-[10px] font-medium text-neutral-500 uppercase">
                   T3

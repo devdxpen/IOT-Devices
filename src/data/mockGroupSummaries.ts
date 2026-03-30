@@ -1,12 +1,13 @@
 import { GroupSummary } from "@/types/group";
-import { mockDeviceSummaries } from "./mockDeviceSummaries";
+import { Device } from "@/types";
+import { mockDevices } from "./mockDevices";
 
 export const mockGroupSummaries: GroupSummary[] = Array.from(
   { length: 15 },
   (_, i) => {
     // Grab a slice of 3 devices for each mock group
-    const deviceSlice = mockDeviceSummaries
-      .map((device) => ({
+    const deviceSlice = mockDevices
+      .map((device: Device) => ({
         ...device,
         id: `${device.id}-grp-${i}`, // ensure unique keys for nested tables
       }))

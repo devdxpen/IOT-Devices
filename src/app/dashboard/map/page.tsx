@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { DeviceSummary } from "@/types/device";
+import { Device } from "@/types/device";
 
 declare global {
   interface Window {
@@ -9,84 +9,109 @@ declare global {
   }
 }
 
-const DUMMY_DEVICES: (Pick<
-  DeviceSummary,
-  "id" | "name" | "type" | "serialNumber" | "company" | "alarms" | "data"
-> & {
+const DUMMY_DEVICES: (Device & {
   lat: number;
   lng: number;
   address: string;
-  owner: string;
-  ownerAvatar: string;
-  usersCount: number;
-  isOnline: boolean;
   area: string;
 })[] = [
   {
     id: "dev-1",
     name: "Refrigerator t34",
-    type: "Temperature Sensor",
+    brandName: "Godrej",
     serialNumber: "dev-690345",
     company: "Godrej",
+    status: "active",
+    model: "T34",
+    macAddress: "00:1A:2B:3C:4D:5E",
+    industry: "Consumer Electronics",
+    category: "Appliances",
+    cluster: "North",
+    group: "Home",
+    lastDataTimestamp: "2025-07-27T10:45:00Z",
+    users: 8,
+    colorFlag: "green",
     alarms: 1,
     data: { t1: 24, t2: 50, t3: 50 },
     lat: 23.0396,
     lng: 72.566,
     address: "Tapovan Society, Nehrunagar, Ahmedabad, Gujarat",
-    owner: "Priya Mehta",
-    ownerAvatar: "/avatars/avatar-2.png",
-    usersCount: 8,
+    assignedUser: { name: "Priya Mehta" },
     isOnline: true,
     area: "Nehrunagar",
   },
   {
     id: "dev-2",
     name: "Refrigerator t34",
-    type: "Temperature Sensor",
+    brandName: "Godrej",
     serialNumber: "dev-690346",
     company: "Godrej",
+    status: "active",
+    model: "T34",
+    macAddress: "00:1A:2B:3C:4D:5F",
+    industry: "Consumer Electronics",
+    category: "Appliances",
+    cluster: "North",
+    group: "Home",
+    lastDataTimestamp: "2025-07-27T10:46:00Z",
+    users: 5,
+    colorFlag: "green",
     alarms: 0,
     data: { t1: 22, t2: 48, t3: 49 },
     lat: 23.071,
     lng: 72.58,
     address: "Science City Road, Ahmedabad, Gujarat",
-    owner: "Priya Mehta",
-    ownerAvatar: "/avatars/avatar-2.png",
-    usersCount: 5,
+    assignedUser: { name: "Priya Mehta" },
     isOnline: true,
     area: "Science City",
   },
   {
     id: "dev-3",
     name: "Refrigerator t34",
-    type: "Temperature Sensor",
+    brandName: "Godrej",
     serialNumber: "dev-690347",
     company: "Godrej",
+    status: "inactive",
+    model: "T34",
+    macAddress: "00:1A:2B:3C:4D:60",
+    industry: "Consumer Electronics",
+    category: "Appliances",
+    cluster: "North",
+    group: "Home",
+    lastDataTimestamp: "2025-07-27T10:47:00Z",
+    users: 6,
+    colorFlag: "yellow",
     alarms: 3,
     data: { t1: 28, t2: 60, t3: 55 },
     lat: 22.999,
     lng: 72.58,
     address: "Maninagar, Ahmedabad, Gujarat",
-    owner: "Priya Mehta",
-    ownerAvatar: "/avatars/avatar-2.png",
-    usersCount: 6,
+    assignedUser: { name: "Priya Mehta" },
     isOnline: false,
     area: "Maninagar",
   },
   {
     id: "dev-4",
     name: "Refrigerator t34",
-    type: "Temperature Sensor",
+    brandName: "Godrej",
     serialNumber: "dev-690348",
     company: "Godrej",
+    status: "active",
+    model: "T34",
+    macAddress: "00:1A:2B:3C:4D:61",
+    industry: "Consumer Electronics",
+    category: "Appliances",
+    cluster: "North",
+    group: "Home",
+    lastDataTimestamp: "2025-07-27T10:48:00Z",
+    users: 4,
+    colorFlag: "green",
     alarms: 0,
     data: { t1: 23, t2: 52, t3: 51 },
     lat: 23.09,
     lng: 72.51,
     address: "Gandhinagar Highway, Ahmedabad, Gujarat",
-    owner: "Priya Mehta",
-    ownerAvatar: "/avatars/avatar-2.png",
-    usersCount: 4,
+    assignedUser: { name: "Priya Mehta" },
     isOnline: true,
     area: "Gandhinagar Highway",
   },
@@ -129,7 +154,7 @@ export default function DashboardMapPage() {
     return unique;
   }, []);
 
-  const filteredDevices = useMemo(() => {
+  const devices = useMemo(() => {
     return DUMMY_DEVICES.filter((d) => {
       const matchesLocation =
         locationFilter === "all" || d.area === locationFilter;
@@ -137,8 +162,8 @@ export default function DashboardMapPage() {
       if (!s) return matchesLocation;
       const inText =
         d.name.toLowerCase().includes(s) ||
-        d.company.toLowerCase().includes(s) ||
-        d.address.toLowerCase().includes(s);
+        (d.brandName?.toLowerCase().includes(s) ?? false) ||
+        (d.address?.toLowerCase().includes(s) ?? false);
       return matchesLocation && inText;
     });
   }, [search, locationFilter]);
@@ -168,7 +193,7 @@ export default function DashboardMapPage() {
           icon: {
             path: window.google.maps.SymbolPath.CIRCLE,
             scale: 8,
-            fillColor: device.alarms > 0 ? "#ef4444" : "#22c55e",
+            fillColor: (device.alarms ?? 0) > 0 ? "#ef4444" : "#22c55e",
             fillOpacity: 0.9,
             strokeColor: "#ffffff",
             strokeWeight: 2,
@@ -254,18 +279,18 @@ export default function DashboardMapPage() {
                 <div style="font-size:13px;font-weight:600;color:#0f172a;">${
                   device.name
                 }</div>
-                <div style="font-size:11px;color:#6b7280;">${
-                  device.type
+                <div style="font-size:11px;color:#64748b;">${
+                  device.brandName || "Sensor"
                 }</div>
               </div>
             </div>
 
             <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">
               <div><span style="color:#9ca3af;">Company :</span> ${
-                device.company
+                device.brandName ?? "Unknown"
               }</div>
               <div><span style="color:#9ca3af;">Owner :</span> ${
-                device.owner
+                device.assignedUser?.name ?? "Unknown"
               }</div>
               <div><span style="color:#9ca3af;">Alarm :</span> ${
                 device.alarms
@@ -274,18 +299,18 @@ export default function DashboardMapPage() {
 
             <div style="display:flex;gap:6px;margin-top:6px;margin-bottom:6px;">
               <div style="flex:1;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;padding:4px 6px;font-size:11px;display:flex;justify-content:space-between;">
-                <span>T1</span><span>${device.data.t1}°C</span>
+                <span>T1</span><span>${device.data?.t1 ?? 0}°C</span>
               </div>
               <div style="flex:1;border-radius:8px;border:1px solid #fed7aa;background:#fff7ed;padding:4px 6px;font-size:11px;display:flex;justify-content:space-between;">
-                <span>T2</span><span>${device.data.t2}</span>
+                <span>T2</span><span>${device.data?.t2 ?? 0}</span>
               </div>
               <div style="flex:1;border-radius:8px;border:1px solid #bbf7d0;background:#ecfdf3;padding:4px 6px;font-size:11px;display:flex;justify-content:space-between;">
-                <span>T3</span><span>${device.data.t3}</span>
+                <span>T3</span><span>${device.data?.t3 ?? 0}</span>
               </div>
             </div>
 
             <div style="font-size:10px;color:#9ca3af;margin-top:4px;">
-              ${device.address}
+              ${device.address ?? ""}
             </div>
           </div>
         `;
@@ -349,7 +374,7 @@ export default function DashboardMapPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {filteredDevices.map((device) => (
+          {devices.map((device) => (
             <button
               key={device.id}
               type="button"
@@ -368,15 +393,15 @@ export default function DashboardMapPage() {
                       {device.name}
                     </div>
                     <div className="text-[11px] text-neutral-500 truncate">
-                      {device.company} • {device.serialNumber}
+                      {device.brandName} • {device.serialNumber}
                     </div>
                   </div>
                   <div className="text-xs font-semibold text-neutral-700">
                     {device.alarms}
                   </div>
                 </div>
-                <div className="text-[11px] text-neutral-500 mt-1 line-clamp-1">
-                  {device.address}
+                <div className="text-xs text-neutral-500 mt-1 line-clamp-1">
+                  {(device as any).address}
                 </div>
               </div>
             </button>

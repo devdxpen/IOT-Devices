@@ -2,7 +2,6 @@ export type {
   Device,
   DeviceReading,
   DeviceStatus,
-  DeviceSummary,
 } from "./device";
 export type {
   DeviceGroup,
@@ -15,6 +14,7 @@ export type {
   AnalyticsFilterOptions,
   AnalyticsFilters,
   AxisChartData,
+  BrandModelEntry,
   ChartSelectionDetail,
   ChartSeries,
   Company,
@@ -32,6 +32,7 @@ export type {
   Notification,
   PieChartData,
   Project,
+  RegionEntry,
   SubscriptionPlan,
   User,
   UserAnalyticsData,

@@ -1,4 +1,4 @@
-import { DeviceSummary } from "@/types";
+import { Device } from "@/types";
 import {
   Table,
   TableBody,
@@ -14,15 +14,15 @@ import { Eye, ChevronUp, ChevronDown, LayoutGrid, Flag, Move } from "lucide-reac
 import { useRouter } from "next/navigation";
 
 interface DevicesTableProps {
-  devices: DeviceSummary[];
+  devices: Device[];
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
   sortConfig: {
-    key: keyof DeviceSummary | string;
+    key: keyof Device | string;
     direction: "asc" | "desc";
   } | null;
   onSort: (key: string) => void;
-  onRequestMove?: (device: DeviceSummary) => void;
+  onRequestMove?: (device: Device) => void;
 }
 
 export function DevicesTable({
@@ -98,7 +98,7 @@ export function DevicesTable({
             <TableHead className="w-12 text-center">
               <Checkbox
                 checked={
-                  devices.length > 0 && selectedIds.length === devices.length
+                  devices?.length > 0 && selectedIds?.length === devices?.length
                 }
                 onCheckedChange={handleSelectAll}
                 className="border-neutral-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mx-auto"
@@ -217,7 +217,7 @@ export function DevicesTable({
                           {device.name}
                         </div>
                         <div className="text-xs text-neutral-500 mt-0.5">
-                          {device.type}
+                          {device.deviceType}
                         </div>
                       </div>
                     </div>
@@ -251,7 +251,7 @@ export function DevicesTable({
                   {/* Tags Cell */}
                   <TableCell className="py-3">
                     <div className="flex flex-wrap gap-1.5 max-w-[180px]">
-                      {device.tags?.length > 0 ? (
+                      {device.tags && device.tags.length > 0 ? (
                         device.tags.map((tag, idx) => (
                           <span
                             key={idx}
@@ -278,7 +278,7 @@ export function DevicesTable({
                   {/* Alarms Cell */}
                   <TableCell className="py-3">
                     <div className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-neutral-100 border border-neutral-200 rounded text-xs font-semibold text-neutral-600">
-                      {device.alarms}
+                      {device.alarms ?? 0}
                     </div>
                   </TableCell>
 

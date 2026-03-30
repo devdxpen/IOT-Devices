@@ -7,64 +7,43 @@ export interface DeviceReading {
 }
 
 export interface Device {
-  id: string;
-  name: string;
-  serialNumber: string;
-  location: string;
+  id: string; // Matches serialNumber / device id
+  image?: string;
   status: DeviceStatus;
-  deviceType: string;
-  category: string;
-  subCategory: string;
-  manufacturer: string;
-  model: string;
-  firmwareVersion: string;
-  macAddress: string;
+  brandName?: string;
+  model?: string;
+  serialNumber?: string; // Used as deviceid/serialno
+  name: string; // Device Name
+  macAddress?: string;
+  industry?: string;
+  category?: string;
+  description?: string;
+  cluster?: string;
+  group?: string;
+  
+  // Extra fields to support existing dashboard features
+  location?: string;
+  deviceType?: string;
+  type?: string;
+  address?: string;
+  subCategory?: string;
+  manufacturer?: string;
+  firmwareVersion?: string;
   password?: string;
-  lastDataTimestamp: string;
-  alarms: number;
-  data: DeviceReading;
-  users: number;
+  lastDataTimestamp?: string;
+  alarms?: number;
+  data?: DeviceReading;
+  users?: number; // User count 
+  userList?: string[];
   assignedUser?: {
     name: string;
     avatarUrl?: string;
   };
   tags?: string[];
-  colorFlag?: "red" | "yellow" | "green" | "none";
-  isOnline: boolean;
-}
-
-export interface DeviceSummary {
-  id: string;
-  name: string;
-  type: string;
-  serialNumber: string;
-  location: string;
-  category: string;
-  subCategory: string;
-  users: string[] /* keep for backward compatibility or refactor later */;
-  userCount: number;
-  manufacturer: string;
-  model: string;
-  firmwareVersion: string;
-  macAddress: string;
-  icon: string;
-  // New fields for the Devices Monitoring table
-  company: string;
-  assignedUser: {
-    name: string;
-    avatarUrl: string;
-  };
-  lastDataTimestamp: string;
-  alarms: number;
-  data: {
-    t1: number;
-    t2: number;
-    t3: number;
-  };
+  colorFlag?: "red" | "yellow" | "green" | "none"; // Explicit priority colors
+  isOnline?: boolean;
   position?: number;
-  // Enhancements
-  isOnline: boolean;
-  ownership: "own" | "shared";
-  tags: string[];
-  colorFlag: "red" | "yellow" | "green" | "none";
+  ownership?: "own" | "shared";
+  company?: string;
+  icon?: string;
 }

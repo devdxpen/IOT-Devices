@@ -175,13 +175,25 @@ export interface CompanyTableRow {
   lastActiveTime: string;
 }
 
+export interface BrandModelEntry {
+  brand: string;
+  model: string;
+  count: number;
+}
+
+export interface RegionEntry {
+  name: string;
+  count: number;
+}
+
 export interface DeviceAnalyticsData {
   kpis: KpiMetric[];
-  bandwidthUsageTrend: AxisChartData;
-  dataUsageTrend: AxisChartData;
+  devicesDataTrend: AxisChartData;
   yearOverYearGrowth: AxisChartData;
-  activeVsDisabledDevices: PieChartData;
-  topDevicesByDataUsage: AxisChartData;
+  topIndustries: PieChartData;
+  brandsAndModels: BrandModelEntry[];
+  regions: RegionEntry[];
+  yearOverYearGrowthArea: AxisChartData;
   topDevices: DeviceTableRow[];
 }
 

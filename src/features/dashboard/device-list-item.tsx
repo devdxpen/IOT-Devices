@@ -2,13 +2,13 @@ import { Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DeviceSummary } from "@/types";
+import { Device } from "@/types";
 import { deviceLocations } from "@/constants/deviceLocations";
 import { DeviceInfoRow } from "./device-info-row";
 import { useRouter } from "next/navigation";
 
 interface DeviceListItemProps {
-  device: DeviceSummary;
+  device: Device;
 }
 
 export function DeviceListItem({ device }: DeviceListItemProps) {
@@ -78,7 +78,7 @@ export function DeviceListItem({ device }: DeviceListItemProps) {
 
         <div className="flex items-center">
           <div className="flex -space-x-2">
-            {device.users.slice(0, 3).map((user, index) => (
+            {device.userList?.slice(0, 3).map((user, index) => (
               <Avatar key={index} className="w-8 h-8 border border-white">
                 <AvatarImage src={user} />
                 <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-medium">
@@ -87,9 +87,9 @@ export function DeviceListItem({ device }: DeviceListItemProps) {
               </Avatar>
             ))}
           </div>
-          {device.userCount > 3 && (
+          {(device.users ?? 0) > 3 && (
             <span className="ml-1.5 text-xs font-medium text-neutral-600">
-              +{device.userCount - 3}
+              +{(device.users ?? 0) - 3}
             </span>
           )}
         </div>
