@@ -44,6 +44,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  ticketPriorityLabels,
+  ticketPriorityStyles,
   ticketStatusLabels,
   ticketStatusStyles,
   ticketSubjectOptions,
@@ -445,28 +447,36 @@ export function SupportUserTicketsView() {
         </Dialog>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Total Tickets</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.total ?? tickets.length}
+            <p className="text-sm font-medium text-muted-foreground">Total Open</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "new").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Open Tickets</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.open ?? 0}
+            <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "in_progress" || t.status === "on_hold").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Resolved Tickets</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.resolved ?? 0}
+            <p className="text-sm font-medium text-muted-foreground">Resolved</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "resolved").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">Closed</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "closed" || t.status === "cancelled").length}
             </p>
           </CardContent>
         </Card>
@@ -530,25 +540,28 @@ export function SupportUserTicketsView() {
               <TableHeader>
                 <TableRow className="bg-muted/40">
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Reason
+                    Ticket ID
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Title
+                    Subject
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Description
+                    Requester
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Demonstrated By
+                    Priority
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Created Date
+                    Assigned Agent
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
                     Status
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
-                    Actions
+                    Created At
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-muted-foreground">
+                    Action
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -562,16 +575,11 @@ export function SupportUserTicketsView() {
                       setDetailOpen(true);
                     }}
                   >
-                    <TableCell className="text-sm text-muted-foreground">
-                      {ticket.category ?? "General"}
+                    <TableCell className="text-sm font-medium text-primary">
+                      {ticket.id}
                     </TableCell>
                     <TableCell className="text-sm font-medium text-foreground">
                       {ticket.subject}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <span className="block max-w-[220px] truncate">
-                        {ticket.description}
-                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -590,11 +598,16 @@ export function SupportUserTicketsView() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div>{formatDate(ticket.createdAt)}</div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {formatTime(ticket.createdAt)}
-                      </div>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn("text-xs", ticketPriorityStyles[ticket.priority])}
+                      >
+                        {ticketPriorityLabels[ticket.priority]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-foreground">
+                        {ticket.assignedAgentName ? ticket.assignedAgentName : <span className="text-muted-foreground text-xs italic">Unassigned</span>}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -606,6 +619,12 @@ export function SupportUserTicketsView() {
                       >
                         {ticketStatusLabels[ticket.status]}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div>{formatDate(ticket.createdAt)}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {formatTime(ticket.createdAt)}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Button
@@ -619,7 +638,7 @@ export function SupportUserTicketsView() {
                           setDetailOpen(true);
                         }}
                       >
-                        <FiEye className="h-4 w-4" />
+                        <FiEye className="h-4 w-4 text-slate-400 hover:text-blue-500" />
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -650,7 +650,7 @@ export async function fetchAvailableDevices(search = ""): Promise<Device[]> {
   return allAvailableDevices.filter(
     (d) =>
       d.name.toLowerCase().includes(s) ||
-      (d.deviceType?.toLowerCase().includes(s) ?? false),
+      d.deviceType?.toLowerCase().includes(s),
   );
 }
 

@@ -6,6 +6,7 @@ import {
   Building2,
   LayoutTemplate,
   MonitorSmartphone,
+  Settings,
   ShieldAlert,
   Ticket,
   TicketPercent,
@@ -60,7 +61,7 @@ const adminPrimaryNavItems = [
     key: "system",
     icon: IoTabletPortraitOutline,
     label: "System",
-    href: "/admin/system",
+    href: "/admin/system/iot-users",
   },
   {
     key: "template",
@@ -161,6 +162,34 @@ const adminDashboardNavItems = [
   { icon: TicketPercent, label: "Coupons", href: "/admin/dashboard/coupons" },
 ] as const;
 
+const adminSystemNavItems = [
+  {
+    icon: MonitorSmartphone,
+    label: "Devices",
+    href: "/admin/system/devices",
+  },
+  {
+    icon: Users2,
+    label: "IoT Users",
+    href: "/admin/system/iot-users",
+  },
+  {
+    icon: Building2,
+    label: "Company",
+    href: "/admin/system/company",
+  },
+  {
+    icon: Users2,
+    label: "Groups",
+    href: "/admin/system/groups",
+  },
+  {
+    icon: Settings,
+    label: "System",
+    href: "/admin/system/system",
+  },
+] as const;
+
 export function Sidebar() {
   const pathname = usePathname();
   const session = useDemoSession();
@@ -189,6 +218,7 @@ function AdminSidebar({ pathname }: { pathname: string }) {
     adminPrimaryNavItems.find((item) => item.key === primarySegment)?.key ??
     "home";
   const showDashboardPanel = activePrimaryKey === "dashboard";
+  const showSystemPanel = activePrimaryKey === "system";
 
   return (
     <div className="sticky top-0 z-40 flex h-screen shrink-0">
@@ -242,6 +272,40 @@ function AdminSidebar({ pathname }: { pathname: string }) {
           <ScrollArea className="h-[calc(100vh-56px)] px-3 py-4">
             <nav className="space-y-1">
               {adminDashboardNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  normalizedPath === item.href ||
+                  normalizedPath.startsWith(`${item.href}/`);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
+                      isActive
+                        ? "text-sky-500"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
+                    )}
+                  >
+                    <Icon className="h-[18px] w-[18px]" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </ScrollArea>
+        </aside>
+      )}
+
+      {showSystemPanel && (
+        <aside className="h-screen w-[300px] border-r border-slate-200 bg-white">
+          <div className="border-b border-slate-200 px-5 py-4">
+            <p className="text-xs text-violet-600">System/sidebar</p>
+          </div>
+          <ScrollArea className="h-[calc(100vh-56px)] px-3 py-4">
+            <nav className="space-y-1">
+              {adminSystemNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =
                   normalizedPath === item.href ||

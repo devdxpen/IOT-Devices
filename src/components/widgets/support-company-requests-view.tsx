@@ -202,28 +202,36 @@ export function SupportCompanyRequestsView() {
         </Dialog>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Total Requests</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.total ?? tickets.length}
+            <p className="text-sm font-medium text-muted-foreground">Total Open</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "new").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Open</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.open ?? 0}
+            <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "in_progress" || t.status === "on_hold").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Resolved</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary?.resolved ?? 0}
+            <p className="text-sm font-medium text-muted-foreground">Resolved</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "resolved").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">Closed</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "closed" || t.status === "cancelled").length}
             </p>
           </CardContent>
         </Card>

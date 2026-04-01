@@ -9,6 +9,7 @@ import { SupportTicketDetail } from "@/components/widgets/support-ticket-detail"
 import { SupportEmptyState, SupportErrorState, SupportLoadingState } from "@/components/layout/support-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -177,6 +178,41 @@ export function SupportQueueView({ scope }: SupportQueueViewProps) {
         <Badge variant="outline" className="text-xs">
           {currentAgent?.name ?? "Support Engineer"}
         </Badge>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">Total Open</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "new").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "in_progress" || t.status === "on_hold").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">Resolved</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "resolved").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground">Closed</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
+              {tickets.filter(t => t.status === "closed" || t.status === "cancelled").length}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">

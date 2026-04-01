@@ -2,6 +2,7 @@
 
 import { Search, ChevronRight, Zap, Cpu, Shield, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { mockKBCategories } from "@/features/support/data/mock-kb";
 
@@ -91,7 +92,3 @@ export default function KnowledgeBasePage() {
     </div>
   );
 }
-
-// Minimal Button shim if needed, though I should check if it's imported
-import { mockNotifications } from "@/features/notifications/data/mock-notifications";
-import { Button } from "@/components/ui/button";

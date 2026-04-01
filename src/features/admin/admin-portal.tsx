@@ -4,6 +4,7 @@ import { AdminSupportTickets } from "@/features/admin/admin-support-tickets";
 import { CompanyAnalyticsDashboard } from "@/features/admin/dashboards/company-analytics-dashboard";
 import { DeviceAnalyticsDashboard } from "@/features/admin/dashboards/device-analytics-dashboard";
 import { UserAnalyticsDashboard } from "@/features/admin/dashboards/user-analytics-dashboard";
+import { AdminHelpDashboard } from "./admin-help-dashboard";
 
 const dashboardSectionTitles: Record<string, string> = {
   "device-analytics": "Device Analytics",
@@ -16,6 +17,14 @@ const dashboardSectionTitles: Record<string, string> = {
   "financial-analytics": "Financial Analytics",
   "alarms-alerts": "Alarms & Alerts",
   coupons: "Coupons",
+};
+
+const systemSectionTitles: Record<string, string> = {
+  devices: "Devices",
+  "iot-users": "IoT Users",
+  company: "Company",
+  groups: "Groups",
+  system: "System",
 };
 
 const primaryTitles: Record<string, string> = {
@@ -86,8 +95,29 @@ export function AdminPortal({
     );
   }
 
+  if (primarySection === "system") {
+    const resolvedSection = systemSectionTitles[dashboardSection]
+      ? dashboardSection
+      : "iot-users";
+
+    if (resolvedSection === "iot-users") {
+      return <AdminHelpDashboard />;
+    }
+
+    return (
+      <PlaceholderPanel
+        title={systemSectionTitles[resolvedSection]}
+        description="This system section is ready. Share exact content and we will build this screen with the same detailed UI."
+      />
+    );
+  }
+
   if (primarySection === "support") {
     return <AdminSupportTickets />;
+  }
+
+  if (primarySection === "help") {
+    return <AdminHelpDashboard />;
   }
 
   const title = primaryTitles[primarySection] ?? "Admin Module";
