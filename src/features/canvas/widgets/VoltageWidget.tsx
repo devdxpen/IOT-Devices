@@ -11,8 +11,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { EChart } from "@/components/charts/echart";
 import gsap from "gsap";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 // Generate wave data for motor display
 const generateWaveData = () => {
@@ -138,17 +138,32 @@ export function VoltageWidget({ id }: NodeProps) {
 
           {/* Wave Chart */}
           <div className="h-12 bg-gray-50 border-t border-gray-100">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={waveData}>
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <EChart
+              height="100%"
+              option={{
+                color: ["#3b82f6"],
+                grid: { left: 0, right: 0, top: 2, bottom: 2 },
+                xAxis: {
+                  type: "category",
+                  data: waveData.map((item) => item.x),
+                  show: false,
+                },
+                yAxis: {
+                  type: "value",
+                  show: false,
+                },
+                tooltip: { show: false },
+                series: [
+                  {
+                    type: "line",
+                    data: waveData.map((item) => item.value),
+                    smooth: true,
+                    showSymbol: false,
+                    lineStyle: { width: 1.5 },
+                  },
+                ],
+              }}
+            />
           </div>
 
           <div className="text-xs text-gray-400 p-2 text-center">

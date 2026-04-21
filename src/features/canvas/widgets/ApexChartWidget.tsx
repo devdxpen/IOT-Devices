@@ -1,140 +1,219 @@
 "use client";
 
 import React, { memo } from "react";
-import { NodeProps } from "@xyflow/react";
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
+import type { NodeProps } from "@xyflow/react";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
-
-const chartConfigs: Record<
-  string,
-  {
-    type: "bar" | "line" | "pie" | "donut" | "radar" | "area" | "radialBar";
-    options: ApexOptions;
-    series: NonNullable<ApexOptions["series"]>;
-  }
-> = {
+const chartConfigs: Record<string, EChartsOption> = {
   chart_bar: {
-    type: "bar",
-    options: {
-      chart: { toolbar: { show: false }, background: "transparent" },
-      plotOptions: { bar: { borderRadius: 4, columnWidth: "60%" } },
-      xaxis: {
-        categories: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-        labels: { style: { fontSize: "10px" } },
-      },
-      yaxis: { labels: { style: { fontSize: "10px" } } },
-      colors: ["#6366f1"],
-      grid: { borderColor: "#f1f5f9" },
-      dataLabels: { enabled: false },
+    color: ["#6366f1"],
+    grid: { left: 12, right: 12, top: 24, bottom: 24, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
     },
-    series: [{ name: "Value", data: [44, 55, 41, 67, 22] }],
+    yAxis: {
+      type: "value",
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+    },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    series: [
+      {
+        type: "bar",
+        data: [44, 55, 41, 67, 22],
+        barMaxWidth: 20,
+        itemStyle: { borderRadius: [4, 4, 0, 0] },
+      },
+    ],
   },
   histogram: {
-    type: "bar",
-    options: {
-      chart: { toolbar: { show: false } },
-      plotOptions: { bar: { columnWidth: "95%", borderRadius: 2 } },
-      xaxis: {
-        categories: ["0-10", "10-20", "20-30", "30-40", "40-50"],
-        labels: { style: { fontSize: "9px" } },
-      },
-      yaxis: { labels: { style: { fontSize: "10px" } } },
-      colors: ["#8b5cf6"],
-      grid: { borderColor: "#f1f5f9" },
-      dataLabels: { enabled: false },
+    color: ["#8b5cf6"],
+    grid: { left: 12, right: 12, top: 24, bottom: 24, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: ["0-10", "10-20", "20-30", "30-40", "40-50"],
+      axisLabel: { color: "#64748b", fontSize: 9 },
+      axisLine: { show: false },
+      axisTick: { show: false },
     },
-    series: [{ name: "Frequency", data: [12, 28, 45, 32, 18] }],
+    yAxis: {
+      type: "value",
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+    },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    series: [
+      {
+        type: "bar",
+        data: [12, 28, 45, 32, 18],
+        barMaxWidth: 24,
+        itemStyle: { borderRadius: [2, 2, 0, 0] },
+      },
+    ],
   },
   "ring-chart": {
-    type: "donut",
-    options: {
-      chart: { toolbar: { show: false } },
-      labels: ["Active", "Idle", "Error", "Offline"],
-      colors: ["#22c55e", "#f59e0b", "#ef4444", "#94a3b8"],
-      legend: { position: "bottom", fontSize: "10px" },
-      plotOptions: { pie: { donut: { size: "55%" } } },
-      dataLabels: { enabled: false },
+    color: ["#22c55e", "#f59e0b", "#ef4444", "#94a3b8"],
+    legend: {
+      bottom: 0,
+      textStyle: { color: "#64748b", fontSize: 10 },
     },
-    series: [44, 25, 13, 18],
+    tooltip: { trigger: "item" },
+    series: [
+      {
+        type: "pie",
+        radius: ["55%", "78%"],
+        center: ["50%", "44%"],
+        label: { show: false },
+        data: [
+          { value: 44, name: "Active" },
+          { value: 25, name: "Idle" },
+          { value: 13, name: "Error" },
+          { value: 18, name: "Offline" },
+        ],
+      },
+    ],
   },
   "pie-chart": {
-    type: "pie",
-    options: {
-      chart: { toolbar: { show: false } },
-      labels: ["Sensors", "Actuators", "Gateway", "Edge"],
-      colors: ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"],
-      legend: { position: "bottom", fontSize: "10px" },
-      dataLabels: { enabled: false },
+    color: ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"],
+    legend: {
+      bottom: 0,
+      textStyle: { color: "#64748b", fontSize: 10 },
     },
-    series: [35, 25, 20, 20],
+    tooltip: { trigger: "item" },
+    series: [
+      {
+        type: "pie",
+        radius: "72%",
+        center: ["50%", "44%"],
+        label: { show: false },
+        data: [
+          { value: 35, name: "Sensors" },
+          { value: 25, name: "Actuators" },
+          { value: 20, name: "Gateway" },
+          { value: 20, name: "Edge" },
+        ],
+      },
+    ],
   },
   "radar-chart": {
-    type: "radar",
-    options: {
-      chart: { toolbar: { show: false } },
-      xaxis: { categories: ["Temp", "Humidity", "Pressure", "Wind", "Light"] },
-      yaxis: { show: false },
-      colors: ["#6366f1"],
-      markers: { size: 3 },
-      dataLabels: { enabled: false },
-    },
-    series: [{ name: "Sensor", data: [80, 50, 70, 40, 90] }],
-  },
-  "trend-chart": {
-    type: "area",
-    options: {
-      chart: { toolbar: { show: false }, sparkline: { enabled: false } },
-      stroke: { curve: "smooth", width: 2 },
-      fill: {
-        type: "gradient",
-        gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 },
-      },
-      xaxis: {
-        categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        labels: { style: { fontSize: "9px" } },
-      },
-      yaxis: { labels: { style: { fontSize: "10px" } } },
-      colors: ["#22c55e"],
-      grid: { borderColor: "#f1f5f9" },
-      dataLabels: { enabled: false },
-    },
-    series: [{ name: "Trend", data: [30, 40, 35, 50, 49, 60] }],
-  },
-  "line-chart": {
-    type: "line",
-    options: {
-      chart: { toolbar: { show: false } },
-      stroke: { curve: "smooth", width: 2 },
-      xaxis: {
-        categories: ["1h", "2h", "3h", "4h", "5h", "6h"],
-        labels: { style: { fontSize: "9px" } },
-      },
-      yaxis: { labels: { style: { fontSize: "10px" } } },
-      colors: ["#3b82f6", "#ef4444"],
-      grid: { borderColor: "#f1f5f9" },
-      dataLabels: { enabled: false },
+    color: ["#6366f1"],
+    radar: {
+      indicator: ["Temp", "Humidity", "Pressure", "Wind", "Light"].map((name) => ({
+        name,
+        max: 100,
+      })),
+      splitLine: { lineStyle: { color: "#e2e8f0" } },
+      splitArea: { areaStyle: { color: ["#ffffff", "#f8fafc"] } },
+      axisName: { color: "#64748b", fontSize: 10 },
     },
     series: [
-      { name: "Sensor A", data: [10, 41, 35, 51, 49, 62] },
-      { name: "Sensor B", data: [23, 32, 27, 43, 38, 55] },
+      {
+        type: "radar",
+        data: [{ value: [80, 50, 70, 40, 90], name: "Sensor" }],
+        areaStyle: { opacity: 0.2 },
+      },
+    ],
+  },
+  "trend-chart": {
+    color: ["#22c55e"],
+    grid: { left: 12, right: 12, top: 20, bottom: 24, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      axisLabel: { color: "#64748b", fontSize: 9 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+    },
+    tooltip: { trigger: "axis" },
+    series: [
+      {
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        areaStyle: { opacity: 0.18 },
+        lineStyle: { width: 2 },
+        data: [30, 40, 35, 50, 49, 60],
+      },
+    ],
+  },
+  "line-chart": {
+    color: ["#3b82f6", "#ef4444"],
+    grid: { left: 12, right: 12, top: 20, bottom: 24, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: ["1h", "2h", "3h", "4h", "5h", "6h"],
+      axisLabel: { color: "#64748b", fontSize: 9 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+    },
+    tooltip: { trigger: "axis" },
+    series: [
+      {
+        name: "Sensor A",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2 },
+        data: [10, 41, 35, 51, 49, 62],
+      },
+      {
+        name: "Sensor B",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2 },
+        data: [23, 32, 27, 43, 38, 55],
+      },
     ],
   },
   horizontal: {
-    type: "bar",
-    options: {
-      chart: { toolbar: { show: false } },
-      plotOptions: {
-        bar: { horizontal: true, borderRadius: 4, barHeight: "60%" },
-      },
-      xaxis: { labels: { style: { fontSize: "10px" } } },
-      yaxis: { labels: { style: { fontSize: "10px" } } },
-      colors: ["#f59e0b"],
-      grid: { borderColor: "#f1f5f9" },
-      dataLabels: { enabled: false },
+    color: ["#f59e0b"],
+    grid: { left: 16, right: 12, top: 20, bottom: 20, containLabel: true },
+    xAxis: {
+      type: "value",
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
     },
-    series: [{ name: "Usage", data: [400, 430, 448, 470, 540] }],
+    yAxis: {
+      type: "category",
+      data: ["Core", "Edge", "AI", "Power", "Storage"],
+      axisLabel: { color: "#64748b", fontSize: 10 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    series: [
+      {
+        type: "bar",
+        data: [400, 430, 448, 470, 540],
+        barMaxWidth: 18,
+        itemStyle: { borderRadius: [0, 4, 4, 0] },
+      },
+    ],
   },
 };
 
@@ -155,27 +234,19 @@ export const ApexChartWidget = memo(function ApexChartWidget({
 }: NodeProps) {
   const widgetData = data as Record<string, unknown>;
   const chartType = (type || "chart_bar") as string;
-  const config = chartConfigs[chartType] || chartConfigs["chart_bar"];
+  const config = chartConfigs[chartType] || chartConfigs.chart_bar;
   const label =
     (widgetData.label as string) || chartLabels[chartType] || "Chart";
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-3 w-[280px]">
-      <div className="flex items-center justify-between mb-2">
+    <div className="w-[280px] rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+      <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-gray-700">{label}</span>
-        <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+        <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[9px] font-medium text-indigo-600">
           LIVE
         </span>
       </div>
-      <div className="w-full">
-        <Chart
-          options={config.options}
-          series={config.series as any}
-          type={config.type}
-          height={180}
-          width="100%"
-        />
-      </div>
+      <EChart option={config} height={180} />
     </div>
   );
 });

@@ -9,18 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,15 +35,6 @@ import {
   getAnalyticsFilterOptions,
   getCompanyDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-
-function chartTooltipStyle() {
-  return {
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 10px 20px -10px rgba(2, 6, 23, 0.25)",
-    fontSize: "12px",
-  };
-}
 
 export function CompanyAnalyticsDashboard() {
   const [usersSplitFilters, setUsersSplitFilters] = useState<AnalyticsFilters>({
@@ -113,6 +93,117 @@ export function CompanyAnalyticsDashboard() {
       return row;
     });
   }, [retentionData.retentionByCompanyMonthlyStacked]);
+  const usersSplitOption = useMemo(
+    () =>
+      ({
+        tooltip: { trigger: "item" },
+        series: [
+          {
+            type: "pie",
+            radius: ["64%", "92%"],
+            avoidLabelOverlap: true,
+            label: { show: false },
+            data: usersSplitData.usersUnderCompanySplit.map((item) => ({
+              name: item.name,
+              value: item.value,
+              itemStyle: { color: item.color },
+            })),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [usersSplitData.usersUnderCompanySplit],
+  );
+  const retentionOption = useMemo(
+    () =>
+      ({
+        color: retentionPalette,
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: retentionChartData.map((row) => String(row.month)),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          name: "h",
+          nameTextStyle: { color: "#94a3b8", padding: [0, 0, 0, -4] },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12 },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: retentionData.retentionByCompanyMonthlyStacked.series.map(
+          (series) => ({
+            name: series.name,
+            type: "bar",
+            stack: "retention",
+            barMaxWidth: 28,
+            emphasis: { focus: "series" },
+            data: series.data,
+          }),
+        ),
+      }) satisfies EChartsOption,
+    [
+      retentionChartData,
+      retentionData.retentionByCompanyMonthlyStacked.series,
+      retentionPalette,
+    ],
+  );
+  const usageOption = useMemo(
+    () =>
+      ({
+        color: ["#2c9ae6"],
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: usageData.usageByCompany.map((item) => item.label),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12, formatter: "{value}%" },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: [
+          {
+            name: "Usage",
+            type: "bar",
+            barMaxWidth: 28,
+            data: usageData.usageByCompany.map((item) => item.usage),
+            itemStyle: { borderRadius: [8, 8, 0, 0] },
+          },
+        ],
+      }) satisfies EChartsOption,
+    [usageData.usageByCompany],
+  );
+  const functionalityOption = useMemo(
+    () =>
+      ({
+        tooltip: { trigger: "item" },
+        series: [
+          {
+            type: "pie",
+            radius: ["48%", "80%"],
+            label: { show: false },
+            data: functionalityData.devicesByFunctionality.map((item) => ({
+              name: item.name,
+              value: item.value,
+              itemStyle: { color: item.color },
+            })),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [functionalityData.devicesByFunctionality],
+  );
 
   const metricCards: DashboardMetricCard[] = [
     {
@@ -181,22 +272,7 @@ export function CompanyAnalyticsDashboard() {
           <CardContent className="px-2 py-4">
             <div className="grid items-center gap-4 sm:grid-cols-[220px_1fr]">
               <div className="relative mx-auto h-[180px] w-[180px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={usersSplitData.usersUnderCompanySplit}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={58}
-                      outerRadius={84}
-                      stroke="none"
-                    >
-                      {usersSplitData.usersUnderCompanySplit.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                <EChart option={usersSplitOption} height="100%" />
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-semibold text-slate-900">
                     {usersSplitData.totalUsersUnderCompany}
@@ -242,26 +318,7 @@ export function CompanyAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={retentionChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="h" />
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                {retentionData.retentionByCompanyMonthlyStacked.series.map(
-                  (series, index) => (
-                    <Bar
-                      key={series.name}
-                      dataKey={series.name}
-                      fill={retentionPalette[index % retentionPalette.length]}
-                      stackId="retention"
-                      radius={[4, 4, 0, 0]}
-                      name={`${series.name}`}
-                    />
-                  ),
-                )}
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={retentionOption} height="100%" />
           </CardContent>
         </Card>
       </section>
@@ -281,15 +338,7 @@ export function CompanyAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={usageData.usageByCompany}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="%" />
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                <Bar dataKey="usage" fill="#2c9ae6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={usageOption} height="100%" />
           </CardContent>
         </Card>
 
@@ -370,23 +419,7 @@ export function CompanyAnalyticsDashboard() {
           </CardHeader>
           <CardContent className="grid items-center gap-4 py-4 sm:grid-cols-[180px_1fr]">
             <div className="relative mx-auto h-[170px] w-[170px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={functionalityData.devicesByFunctionality}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={38}
-                    outerRadius={68}
-                    stroke="none"
-                  >
-                    {functionalityData.devicesByFunctionality.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={chartTooltipStyle()} />
-                </PieChart>
-              </ResponsiveContainer>
+              <EChart option={functionalityOption} height="100%" />
             </div>
             <div className="space-y-3">
               {functionalityData.devicesByFunctionality.map((item) => (

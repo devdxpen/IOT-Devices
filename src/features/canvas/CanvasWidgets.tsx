@@ -1,10 +1,9 @@
-// components/CanvasWidgets.tsx
-import React, { useEffect, useState } from "react";
-import GaugeComponent from "react-gauge-component";
+import React, { useEffect, useMemo, useState } from "react";
+import { EChart } from "@/components/charts/echart";
 
 interface SensorProps {
   initialValue?: number;
-  isSimulated?: boolean; // "Pre-use" mode mate
+  isSimulated?: boolean;
 }
 
 export const TemperatureSensorWidget = ({
@@ -13,12 +12,12 @@ export const TemperatureSensorWidget = ({
 }: SensorProps) => {
   const [value, setValue] = useState(initialValue);
 
-  // Pre-use: Simulate data changes every 2 seconds
   useEffect(() => {
-    if (!isSimulated) return;
+    if (!isSimulated) {
+      return;
+    }
 
     const interval = setInterval(() => {
-      // Random temp between 20 and 40
       const randomChange = Math.random() * 4 - 2;
       setValue((prev) => parseFloat((prev + randomChange).toFixed(1)));
     }, 2000);
@@ -26,38 +25,68 @@ export const TemperatureSensorWidget = ({
     return () => clearInterval(interval);
   }, [isSimulated]);
 
-  return (
-    <div className="flex flex-col items-center p-2 bg-white border rounded-lg shadow-sm w-full h-full">
-      <span className="text-xs font-bold text-gray-500 mb-1">Temperature</span>
+  const gaugeOption = useMemo(
+    () => ({
+      series: [
+        {
+          type: "gauge",
+          startAngle: 180,
+          endAngle: 0,
+          min: 0,
+          max: 60,
+          radius: "100%",
+          center: ["50%", "72%"],
+          pointer: {
+            icon: "circle",
+            width: 12,
+            length: "45%",
+            offsetCenter: [0, "-60%"],
+            itemStyle: { color: "#2563eb" },
+          },
+          progress: {
+            show: true,
+            width: 12,
+            roundCap: true,
+            itemStyle: { color: "#2563eb" },
+          },
+          axisLine: {
+            lineStyle: {
+              width: 12,
+              color: [
+                [0.25, "#5BE12C"],
+                [0.5, "#F5CD19"],
+                [0.75, "#EA4228"],
+                [1, "#EA4228"],
+              ],
+            },
+          },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          detail: {
+            valueAnimation: true,
+            offsetCenter: [0, "-2%"],
+            fontSize: 16,
+            color: "#1f2937",
+            formatter: (current: number) => `${current.toFixed(1)} C`,
+          },
+          data: [{ value }],
+        },
+      ],
+    }),
+    [value],
+  );
 
-      {/* Gauge Component */}
-      <div className="w-full h-24">
-        <GaugeComponent
-          type="semicircle"
-          arc={{
-            width: 0.2,
-            padding: 0.005,
-            cornerRadius: 1,
-            gradient: false,
-            subArcs: [
-              { limit: 15, color: "#5BE12C", showTick: true },
-              { limit: 30, color: "#F5CD19", showTick: true },
-              { limit: 45, color: "#EA4228", showTick: true },
-              { color: "#EA4228" },
-            ],
-          }}
-          pointer={{ type: "blob", animationDelay: 0 }}
-          value={value}
-          minValue={0}
-          maxValue={60}
-          labels={{
-            valueLabel: { formatTextValue: (val) => val + "ºC" },
-          }}
-        />
+  return (
+    <div className="flex h-full w-full flex-col items-center rounded-lg border bg-white p-2 shadow-sm">
+      <span className="mb-1 text-xs font-bold text-gray-500">Temperature</span>
+
+      <div className="h-24 w-full">
+        <EChart option={gaugeOption} height="100%" />
       </div>
 
-      <div className="text-xs text-gray-400 mt-1">
-        {isSimulated ? "• Live (Simulated)" : "• Offline"}
+      <div className="mt-1 text-xs text-gray-400">
+        {isSimulated ? "Live (Simulated)" : "Offline"}
       </div>
     </div>
   );

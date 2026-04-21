@@ -8,15 +8,7 @@ import {
   Thermometer,
 } from "lucide-react";
 import { useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as ReTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -284,6 +276,70 @@ export default function AlertsPage() {
   const totalAlerts = alerts.length;
   const criticalAlerts = alerts.filter((a) => a.type === "critical").length;
 
+  const buildTrendOption = (data: typeof monthlyAlarmData): EChartsOption =>
+    ({
+      color: ["#22c55e", "#facc15", "#fb923c", "#ef4444"],
+      tooltip: { trigger: "axis" },
+      legend: { show: false },
+      grid: { left: 8, right: 8, top: 18, bottom: 12, containLabel: true },
+      xAxis: {
+        type: "category",
+        data: data.map((item) => item.month),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: "#6b7280", fontSize: 11 },
+      },
+      yAxis: {
+        type: "value",
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: "#e5e7eb", type: "dashed" } },
+        axisLabel: { color: "#9ca3af", fontSize: 11 },
+      },
+      series: [
+        {
+          name: "Low",
+          type: "line",
+          stack: "severity",
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { width: 1.5 },
+          areaStyle: { opacity: 0.25 },
+          data: data.map((item) => item.low),
+        },
+        {
+          name: "Medium",
+          type: "line",
+          stack: "severity",
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { width: 1.5 },
+          areaStyle: { opacity: 0.25 },
+          data: data.map((item) => item.medium),
+        },
+        {
+          name: "High",
+          type: "line",
+          stack: "severity",
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { width: 1.5 },
+          areaStyle: { opacity: 0.25 },
+          data: data.map((item) => item.high),
+        },
+        {
+          name: "Critical",
+          type: "line",
+          stack: "severity",
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { width: 1.5 },
+          areaStyle: { opacity: 0.25 },
+          data: data.map((item) => item.critical),
+        },
+      ],
+    }) satisfies EChartsOption;
+
   return (
     <div className="flex h-full flex-col gap-4">
       {/* Top summary cards */}
@@ -373,60 +429,7 @@ export default function AlertsPage() {
             </div>
           </div>
           <div className="h-40 w-full">
-            <ResponsiveContainer>
-              <AreaChart data={monthlyAlarmData} stackOffset="none">
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
-                  width={24}
-                />
-                <ReTooltip
-                  cursor={{ fill: "rgba(148,163,184,0.12)" }}
-                  contentStyle={{
-                    borderRadius: 10,
-                    borderColor: "#e5e7eb",
-                    boxShadow: "0 8px 24px rgba(15,23,42,0.12)",
-                    fontSize: 11,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="low"
-                  stackId="1"
-                  stroke="#22c55e"
-                  fill="#bbf7d0"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="medium"
-                  stackId="1"
-                  stroke="#facc15"
-                  fill="#feeeb3"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="high"
-                  stackId="1"
-                  stroke="#fb923c"
-                  fill="#fed7aa"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="critical"
-                  stackId="1"
-                  stroke="#ef4444"
-                  fill="#fecaca"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EChart option={buildTrendOption(monthlyAlarmData)} height="100%" />
           </div>
         </Card>
 
@@ -456,60 +459,7 @@ export default function AlertsPage() {
             </div>
           </div>
           <div className="h-40 w-full">
-            <ResponsiveContainer>
-              <AreaChart data={monthlyAlertData} stackOffset="none">
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
-                  width={24}
-                />
-                <ReTooltip
-                  cursor={{ fill: "rgba(148,163,184,0.12)" }}
-                  contentStyle={{
-                    borderRadius: 10,
-                    borderColor: "#e5e7eb",
-                    boxShadow: "0 8px 24px rgba(15,23,42,0.12)",
-                    fontSize: 11,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="low"
-                  stackId="1"
-                  stroke="#22c55e"
-                  fill="#bbf7d0"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="medium"
-                  stackId="1"
-                  stroke="#facc15"
-                  fill="#feeeb3"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="high"
-                  stackId="1"
-                  stroke="#fb923c"
-                  fill="#fed7aa"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="critical"
-                  stackId="1"
-                  stroke="#ef4444"
-                  fill="#fecaca"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EChart option={buildTrendOption(monthlyAlertData)} height="100%" />
           </div>
         </Card>
       </div>

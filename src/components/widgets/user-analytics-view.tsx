@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ApexOptions } from "apexcharts";
 import {
   IoCashOutline,
   IoCheckmarkCircleOutline,
@@ -11,6 +10,7 @@ import {
 } from "react-icons/io5";
 import { useState } from "react";
 import { KpiGrid } from "@/components/cards/kpi-grid";
+import type { ApexOptions } from "@/components/charts/apex-chart";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
 import { ChartFilterGroup } from "@/components/filters/chart-filter-group";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";

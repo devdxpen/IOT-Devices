@@ -11,20 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useMemo } from "react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,15 +33,6 @@ import {
   defaultAnalyticsFilters,
   getDeviceDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-
-function tooltipStyle() {
-  return {
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 10px 20px -10px rgba(2, 6, 23, 0.25)",
-    fontSize: "12px",
-  };
-}
 
 function formatCount(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
@@ -130,6 +108,26 @@ function TopIndustriesCard({
 }: {
   data: Array<{ name: string; value: number; color: string }>;
 }) {
+  const chartOption = useMemo(
+    () =>
+      ({
+        tooltip: { trigger: "item" },
+        series: [
+          {
+            type: "pie",
+            radius: ["50%", "86%"],
+            label: { show: false },
+            data: data.map((entry) => ({
+              name: entry.name,
+              value: entry.value,
+              itemStyle: { color: entry.color },
+            })),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [data],
+  );
+
   return (
     <Card className="border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-4 py-3">
@@ -139,24 +137,7 @@ function TopIndustriesCard({
       </CardHeader>
       <CardContent className="flex items-center gap-6 px-4 py-5">
         <div className="w-[140px] shrink-0">
-          <ResponsiveContainer width="100%" height={140}>
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                innerRadius={35}
-                outerRadius={60}
-                strokeWidth={0}
-              >
-                {data.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle()} />
-            </PieChart>
-          </ResponsiveContainer>
+          <EChart option={chartOption} height={140} />
         </div>
         <div className="space-y-2.5">
           {data.map((entry) => (
@@ -254,6 +235,167 @@ export function DeviceAnalyticsDashboard() {
   );
 
   const { metrics } = summaryData;
+  const devicesDataOption = useMemo(
+    () =>
+      ({
+        tooltip: { trigger: "axis" },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: summaryData.devicesDataTrend.map((item) => item.month),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: "#94a3b8",
+            fontSize: 12,
+            formatter: (value: number) => `${value} MB`,
+          },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: [
+          {
+            name: "Data Usage",
+            type: "line",
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 2, color: "#1E88E5" },
+            areaStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "rgba(30, 136, 229, 0.45)" },
+                  { offset: 1, color: "rgba(30, 136, 229, 0.05)" },
+                ],
+              },
+            },
+            data: summaryData.devicesDataTrend.map((item) => item.dataUsageMb),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [summaryData.devicesDataTrend],
+  );
+  const growthOption = useMemo(
+    () =>
+      ({
+        color: ["#4CAF50", "#EF5350"],
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: summaryData.yearOverYearGrowth.map((item) => item.month),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12 },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: [
+          {
+            name: "Active Devices",
+            type: "bar",
+            stack: "growth",
+            barMaxWidth: 28,
+            data: summaryData.yearOverYearGrowth.map((item) => item.activeDevices),
+            itemStyle: { borderRadius: [8, 8, 0, 0] },
+          },
+          {
+            name: "Disabled",
+            type: "bar",
+            stack: "growth",
+            barMaxWidth: 28,
+            data: summaryData.yearOverYearGrowth.map((item) => item.disabled),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [summaryData.yearOverYearGrowth],
+  );
+  const growthAreaOption = useMemo(
+    () =>
+      ({
+        color: ["#1E88E5", "#90A4AE"],
+        tooltip: { trigger: "axis" },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: summaryData.yearOverYearGrowthArea.map((item) => item.month),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: "#94a3b8",
+            fontSize: 12,
+            formatter: (value: number) =>
+              value >= 1000 ? `${Math.round(value / 1000)}k` : String(value),
+          },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: [
+          {
+            name: "Now",
+            type: "line",
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 2, color: "#1E88E5" },
+            areaStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "rgba(30, 136, 229, 0.35)" },
+                  { offset: 1, color: "rgba(30, 136, 229, 0.05)" },
+                ],
+              },
+            },
+            data: summaryData.yearOverYearGrowthArea.map((item) => item.now),
+          },
+          {
+            name: "Past",
+            type: "line",
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 2, color: "#90A4AE" },
+            areaStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "rgba(144, 164, 174, 0.30)" },
+                  { offset: 1, color: "rgba(144, 164, 174, 0.05)" },
+                ],
+              },
+            },
+            data: summaryData.yearOverYearGrowthArea.map((item) => item.past),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [summaryData.yearOverYearGrowthArea],
+  );
 
   const kpiCards: KpiCardProps[] = [
     {
@@ -326,39 +468,7 @@ export function DeviceAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[260px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={summaryData.devicesDataTrend}>
-                <defs>
-                  <linearGradient
-                    id="devices-data-fill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => `${v} MB`}
-                />
-                <Tooltip contentStyle={tooltipStyle()} />
-                <Area
-                  type="monotone"
-                  dataKey="dataUsageMb"
-                  stroke="#1E88E5"
-                  fillOpacity={1}
-                  fill="url(#devices-data-fill)"
-                  strokeWidth={2}
-                  name="Data Usage"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EChart option={devicesDataOption} height="100%" />
           </CardContent>
         </Card>
 
@@ -369,27 +479,7 @@ export function DeviceAnalyticsDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[260px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={summaryData.yearOverYearGrowth}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle()} />
-                <Bar
-                  dataKey="activeDevices"
-                  stackId="growth"
-                  fill="#4CAF50"
-                  radius={[4, 4, 0, 0]}
-                  name="Active Devices"
-                />
-                <Bar
-                  dataKey="disabled"
-                  stackId="growth"
-                  fill="#EF5350"
-                  name="Disabled"
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={growthOption} height="100%" />
           </CardContent>
         </Card>
       </section>
@@ -409,48 +499,7 @@ export function DeviceAnalyticsDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="h-[260px] px-2 py-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={summaryData.yearOverYearGrowthArea}>
-              <defs>
-                <linearGradient id="yoy-now" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1E88E5" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#1E88E5" stopOpacity={0.05} />
-                </linearGradient>
-                <linearGradient id="yoy-past" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#90A4AE" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#90A4AE" stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v) =>
-                  v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
-                }
-              />
-              <Tooltip contentStyle={tooltipStyle()} />
-              <Area
-                type="monotone"
-                dataKey="now"
-                stroke="#1E88E5"
-                fillOpacity={1}
-                fill="url(#yoy-now)"
-                strokeWidth={2}
-                name="Now"
-              />
-              <Area
-                type="monotone"
-                dataKey="past"
-                stroke="#90A4AE"
-                fillOpacity={1}
-                fill="url(#yoy-past)"
-                strokeWidth={2}
-                name="Past"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <EChart option={growthAreaOption} height="100%" />
         </CardContent>
       </Card>
 

@@ -1,6 +1,5 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
 import { Info } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  type ApexOptions,
   type ApexAxisChartSeries,
   ApexChart,
   type ApexNonAxisChartSeries,

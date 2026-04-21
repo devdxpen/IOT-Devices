@@ -12,19 +12,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { snapshotApi } from "@/lib/mock-api/access-control";
 
 const devicesAnalytics = [
@@ -160,17 +148,79 @@ const planBreakdown = [
   { name: "Free", value: 20, color: "#bfdbfe" },
 ];
 
-function chartTooltipStyle() {
+function buildMonthlyBarOption(
+  data: Array<Record<string, string | number>>,
+  keys: Array<{ key: string; label: string; color: string }>,
+): EChartsOption {
   return {
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 10px 20px -10px rgba(2, 6, 23, 0.25)",
-    fontSize: "12px",
+    color: keys.map((item) => item.color),
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    legend: {
+      top: 0,
+      textStyle: { color: "#475569", fontSize: 12 },
+    },
+    grid: { left: 16, right: 16, top: 48, bottom: 16, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: data.map((item) => String(item.month)),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: "#64748b" },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+      axisLabel: { color: "#64748b" },
+    },
+    series: keys.map((item) => ({
+      name: item.label,
+      type: "bar",
+      data: data.map((row) => Number(row[item.key] ?? 0)),
+      stack: keys.length > 2 ? "total" : undefined,
+      barMaxWidth: 20,
+      itemStyle: { borderRadius: [5, 5, 0, 0] },
+    })),
   };
 }
 
 export function AdminHomeDashboard() {
   const dataset = useMemo(() => snapshotApi.getDataset(), []);
+  const devicesAnalyticsOption = buildMonthlyBarOption(devicesAnalytics, [
+    { key: "active", label: "Active", color: "#1d9bf0" },
+    { key: "inactive", label: "Inactive", color: "#64748b" },
+    { key: "newAdded", label: "New Added", color: "#22c55e" },
+    { key: "discontinued", label: "Discontinued", color: "#ef4444" },
+  ]);
+  const userAnalyticsOption = buildMonthlyBarOption(userAnalytics, [
+    { key: "active", label: "Active", color: "#2496e6" },
+    { key: "inactive", label: "Inactive", color: "#64748b" },
+  ]);
+  const companyAnalyticsOption = buildMonthlyBarOption(companyAnalytics, [
+    { key: "active", label: "Active", color: "#2d9ae5" },
+    { key: "inactive", label: "Inactive", color: "#64748b" },
+  ]);
+  const planBreakdownOption: EChartsOption = {
+    color: planBreakdown.map((entry) => entry.color),
+    tooltip: { trigger: "item" },
+    legend: {
+      bottom: 0,
+      textStyle: { color: "#475569", fontSize: 12 },
+    },
+    series: [
+      {
+        type: "pie",
+        radius: ["45%", "72%"],
+        center: ["50%", "42%"],
+        label: { show: false },
+        data: planBreakdown.map((entry) => ({
+          name: entry.name,
+          value: entry.value,
+        })),
+      },
+    ],
+  };
   const summaryCards = [
     {
       id: "devices",
@@ -242,24 +292,7 @@ export function AdminHomeDashboard() {
             </button>
           </header>
           <div className="h-[320px] px-2 py-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={devicesAnalytics} barCategoryGap={12}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="k" />
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                <Legend />
-                <Bar
-                  dataKey="active"
-                  stackId="device"
-                  fill="#1d9bf0"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar dataKey="inactive" stackId="device" fill="#64748b" />
-                <Bar dataKey="newAdded" stackId="device" fill="#22c55e" />
-                <Bar dataKey="discontinued" stackId="device" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={devicesAnalyticsOption} height="100%" />
           </div>
         </article>
 
@@ -276,27 +309,7 @@ export function AdminHomeDashboard() {
             </button>
           </header>
           <div className="h-[320px] px-2 py-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={userAnalytics} barCategoryGap={12}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="k" />
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                <Legend />
-                <Bar
-                  dataKey="active"
-                  fill="#2496e6"
-                  radius={[5, 5, 0, 0]}
-                  barSize={20}
-                />
-                <Bar
-                  dataKey="inactive"
-                  fill="#64748b"
-                  radius={[5, 5, 0, 0]}
-                  barSize={20}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={userAnalyticsOption} height="100%" />
           </div>
         </article>
 
@@ -313,27 +326,7 @@ export function AdminHomeDashboard() {
             </button>
           </header>
           <div className="h-[320px] px-2 py-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={companyAnalytics} barCategoryGap={12}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="k" />
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                <Legend />
-                <Bar
-                  dataKey="active"
-                  fill="#2d9ae5"
-                  radius={[5, 5, 0, 0]}
-                  barSize={20}
-                />
-                <Bar
-                  dataKey="inactive"
-                  fill="#64748b"
-                  radius={[5, 5, 0, 0]}
-                  barSize={20}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={companyAnalyticsOption} height="100%" />
           </div>
         </article>
       </section>
@@ -527,25 +520,7 @@ export function AdminHomeDashboard() {
         <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
           <h2 className="text-lg font-semibold text-slate-900">Plan Split</h2>
           <div className="mt-3 h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Tooltip contentStyle={chartTooltipStyle()} />
-                <Legend />
-                <Pie
-                  data={planBreakdown}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={90}
-                >
-                  {planBreakdown.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+            <EChart option={planBreakdownOption} height="100%" />
           </div>
         </article>
         <article className="rounded-lg border border-slate-200 bg-linear-to-b from-sky-600 to-blue-700 p-5 text-white shadow-sm">

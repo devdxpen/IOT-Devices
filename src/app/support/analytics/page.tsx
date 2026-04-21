@@ -1,30 +1,16 @@
 "use client";
 
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  PieChart, 
-  Pie, 
-  Cell,
-  Legend
-} from "recharts";
-import { 
-  Ticket, 
-  Calendar, 
-  Smile, 
-  AlertTriangle, 
-  Eye, 
-  Edit2, 
+  AlertTriangle,
+  Calendar,
+  Calendar as CalendarIcon,
+  Edit2,
+  Eye,
+  Smile,
+  Ticket,
   Trash2,
-  Calendar as CalendarIcon
 } from "lucide-react";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -84,6 +70,119 @@ const escalatedTickets = [
 ];
 
 export default function SupportAnalyticsPage() {
+  const ticketVolumeOption: EChartsOption = {
+    color: ["#10b981", "#f43f5e", "#3b82f6", "#64748b"],
+    tooltip: { trigger: "axis" },
+    legend: { show: false },
+    grid: { left: 18, right: 18, top: 20, bottom: 20, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: areaData.map((item) => item.name),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: "#94a3b8", fontSize: 10, margin: 10 },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+      axisLabel: {
+        color: "#94a3b8",
+        fontSize: 10,
+        formatter: (value: number) => `${value / 1000}k`,
+      },
+    },
+    series: [
+      {
+        name: "Total Tickets",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        areaStyle: { opacity: 0.12 },
+        lineStyle: { width: 2 },
+        data: areaData.map((item) => item.total),
+      },
+      {
+        name: "Avg. Response",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        areaStyle: { opacity: 0.1 },
+        lineStyle: { width: 2 },
+        data: areaData.map((item) => item.avg),
+      },
+      {
+        name: "Satisfaction",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        areaStyle: { opacity: 0.08 },
+        lineStyle: { width: 2 },
+        data: areaData.map((item) => item.satisfaction),
+      },
+      {
+        name: "SLA Breach",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        areaStyle: { opacity: 0.08 },
+        lineStyle: { width: 2 },
+        data: areaData.map((item) => item.sla),
+      },
+    ],
+  };
+
+  const agentPerformanceOption: EChartsOption = {
+    color: ["#3b82f6", "#64748b"],
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    grid: { left: 18, right: 18, top: 20, bottom: 20, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: barData.map((item) => item.name),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: "#94a3b8", fontSize: 10, margin: 10 },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#f1f5f9", type: "dashed" } },
+      axisLabel: { color: "#94a3b8", fontSize: 10 },
+    },
+    series: [
+      {
+        name: "Score",
+        type: "bar",
+        data: barData.map((item) => item.score),
+        barMaxWidth: 24,
+        itemStyle: { borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: "Second",
+        type: "bar",
+        data: barData.map((item) => item.second),
+        barMaxWidth: 24,
+        itemStyle: { borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  };
+
+  const topIssuesOption: EChartsOption = {
+    color: pieData.map((item) => item.color),
+    tooltip: { trigger: "item" },
+    series: [
+      {
+        type: "pie",
+        radius: ["50%", "74%"],
+        center: ["50%", "50%"],
+        label: { show: false },
+        data: pieData.map((item) => ({ name: item.name, value: item.value })),
+      },
+    ],
+  };
+
   return (
     <div className="p-8 space-y-8 bg-slate-50/50">
       <div className="flex items-center justify-between">
@@ -135,39 +234,7 @@ export default function SupportAnalyticsPage() {
             </div>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8' }} 
-                    dy={10}
-                />
-                <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8' }} 
-                    tickFormatter={(value) => `${value / 1000}k`}
-                />
-                <Tooltip />
-                <Area type="monotone" dataKey="total" stroke="#10b981" fillOpacity={1} fill="url(#colorTotal)" strokeWidth={2} />
-                <Area type="monotone" dataKey="avg" stroke="#f43f5e" fillOpacity={1} fill="url(#colorAvg)" strokeWidth={2} />
-                <Area type="monotone" dataKey="satisfaction" stroke="#3b82f6" fillOpacity={0.3} fill="#3b82f6" strokeWidth={2} />
-                <Area type="monotone" dataKey="sla" stroke="#64748b" fillOpacity={0.3} fill="#64748b" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EChart option={ticketVolumeOption} height="100%" />
           </div>
         </div>
 
@@ -175,26 +242,7 @@ export default function SupportAnalyticsPage() {
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
           <h3 className="font-bold text-slate-800">Agent Performance</h3>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8' }}
-                    dy={10}
-                />
-                <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8' }}
-                />
-                <Tooltip cursor={{ fill: '#f8fafc' }} />
-                <Bar dataKey="score" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} />
-                <Bar dataKey="second" fill="#64748b" radius={[4, 4, 0, 0]} barSize={24} />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={agentPerformanceOption} height="100%" />
           </div>
         </div>
       </div>
@@ -209,24 +257,7 @@ export default function SupportAnalyticsPage() {
                     <span className="text-2xl font-bold text-slate-900">100</span>
                     <span className="text-xs text-slate-500 font-medium">Issues</span>
                 </div>
-                <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                    >
-                    {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                    </Pie>
-                    <Tooltip />
-                </PieChart>
-                </ResponsiveContainer>
+                <EChart option={topIssuesOption} height="100%" />
             </div>
             <div className="w-full space-y-3 mt-4">
                 {pieData.map((item) => (

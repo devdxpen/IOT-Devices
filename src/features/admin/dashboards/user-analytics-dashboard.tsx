@@ -2,18 +2,7 @@
 
 import { ArrowUpRight, Gauge, Mail, Timer, Users, Wrench } from "lucide-react";
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { EChart, type EChartsOption } from "@/components/charts/echart";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,15 +28,6 @@ import {
   getAnalyticsFilterOptions,
   getUserDashboardData,
 } from "@/features/admin/dashboards/analytics-derived-data";
-
-function tooltipStyle() {
-  return {
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 10px 20px -10px rgba(2, 6, 23, 0.25)",
-    fontSize: "12px",
-  };
-}
 
 function UserRankList({
   rows,
@@ -158,6 +138,157 @@ export function UserAnalyticsDashboard() {
       return row;
     });
   }, [retentionData.retentionByUserMonthlyStacked]);
+  const uptimeOption = useMemo(
+    () =>
+      ({
+        tooltip: { trigger: "item" },
+        series: [
+          {
+            type: "pie",
+            radius: ["64%", "92%"],
+            label: { show: false },
+            data: uptimeData.uptimeDistribution.map((item) => ({
+              name: item.name,
+              value: item.value,
+              itemStyle: { color: item.color },
+            })),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [uptimeData.uptimeDistribution],
+  );
+  const retentionOption = useMemo(
+    () =>
+      ({
+        color: retentionPalette,
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: retentionChartData.map((row) => String(row.month)),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          name: "h",
+          nameTextStyle: { color: "#94a3b8", padding: [0, 0, 0, -4] },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12 },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: retentionData.retentionByUserMonthlyStacked.series.map(
+          (series) => ({
+            name: series.name,
+            type: "bar",
+            stack: "retention",
+            barMaxWidth: 28,
+            data: series.data,
+          }),
+        ),
+      }) satisfies EChartsOption,
+    [
+      retentionChartData,
+      retentionData.retentionByUserMonthlyStacked.series,
+      retentionPalette,
+    ],
+  );
+  const usageOption = useMemo(
+    () =>
+      ({
+        color: ["#2496e6", "#7cc4ed", "#9bd06e", "#f9c74f"],
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        legend: {
+          top: 0,
+          textStyle: { color: "#64748b", fontSize: 11 },
+          itemWidth: 10,
+          itemHeight: 10,
+        },
+        grid: { left: 12, right: 12, top: 36, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "category",
+          data: usageData.functionalityUsageByUser.map((item) => item.label),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12, formatter: "{value}%" },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        series: [
+          {
+            name: "Monitoring",
+            type: "bar",
+            stack: "usage",
+            barMaxWidth: 28,
+            data: usageData.functionalityUsageByUser.map((item) => item.monitoring),
+            itemStyle: { borderRadius: [8, 8, 0, 0] },
+          },
+          {
+            name: "Security",
+            type: "bar",
+            stack: "usage",
+            barMaxWidth: 28,
+            data: usageData.functionalityUsageByUser.map((item) => item.security),
+          },
+          {
+            name: "Control",
+            type: "bar",
+            stack: "usage",
+            barMaxWidth: 28,
+            data: usageData.functionalityUsageByUser.map((item) => item.control),
+          },
+          {
+            name: "Energy",
+            type: "bar",
+            stack: "usage",
+            barMaxWidth: 28,
+            data: usageData.functionalityUsageByUser.map((item) => item.energy),
+          },
+        ],
+      }) satisfies EChartsOption,
+    [usageData.functionalityUsageByUser],
+  );
+  const functionalityOption = useMemo(
+    () =>
+      ({
+        color: ["#2c9ae6"],
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: 12, right: 12, top: 16, bottom: 8, containLabel: true },
+        xAxis: {
+          type: "value",
+          max: 100,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#94a3b8", fontSize: 12, formatter: "{value}%" },
+          splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } },
+        },
+        yAxis: {
+          type: "category",
+          data: functionalityData.usersByFunctionality.map((item) => item.name),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: "#64748b", fontSize: 12 },
+        },
+        series: [
+          {
+            name: "Users",
+            type: "bar",
+            data: functionalityData.usersByFunctionality.map((item) => item.value),
+            barMaxWidth: 20,
+            itemStyle: { borderRadius: [0, 8, 8, 0] },
+          },
+        ],
+      }) satisfies EChartsOption,
+    [functionalityData.usersByFunctionality],
+  );
 
   const metricCards: DashboardMetricCard[] = [
     {
@@ -214,23 +345,7 @@ export function UserAnalyticsDashboard() {
           </CardHeader>
           <CardContent className="grid items-center gap-4 py-4 sm:grid-cols-[210px_1fr]">
             <div className="relative mx-auto h-[180px] w-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={uptimeData.uptimeDistribution}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={58}
-                    outerRadius={84}
-                    stroke="none"
-                  >
-                    {uptimeData.uptimeDistribution.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle()} />
-                </PieChart>
-              </ResponsiveContainer>
+              <EChart option={uptimeOption} height="100%" />
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-4xl font-semibold text-slate-900">
                   {uptimeData.metrics.avgUptime}%
@@ -275,26 +390,7 @@ export function UserAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={retentionChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="h" />
-                <Tooltip contentStyle={tooltipStyle()} />
-                {retentionData.retentionByUserMonthlyStacked.series.map(
-                  (series, index) => (
-                    <Bar
-                      key={series.name}
-                      dataKey={series.name}
-                      fill={retentionPalette[index % retentionPalette.length]}
-                      stackId="retention"
-                      radius={[4, 4, 0, 0]}
-                      name={`${series.name}`}
-                    />
-                  ),
-                )}
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={retentionOption} height="100%" />
           </CardContent>
         </Card>
       </section>
@@ -316,23 +412,7 @@ export function UserAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={usageData.functionalityUsageByUser}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} unit="%" />
-                <Tooltip contentStyle={tooltipStyle()} />
-                <Bar
-                  dataKey="monitoring"
-                  stackId="usage"
-                  fill="#2496e6"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar dataKey="security" stackId="usage" fill="#7cc4ed" />
-                <Bar dataKey="control" stackId="usage" fill="#9bd06e" />
-                <Bar dataKey="energy" stackId="usage" fill="#f9c74f" />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={usageOption} height="100%" />
           </CardContent>
         </Card>
 
@@ -396,26 +476,7 @@ export function UserAnalyticsDashboard() {
             </div>
           </CardHeader>
           <CardContent className="h-[280px] px-2 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={functionalityData.usersByFunctionality} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis
-                  type="number"
-                  tickLine={false}
-                  axisLine={false}
-                  unit="%"
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  width={95}
-                />
-                <Tooltip contentStyle={tooltipStyle()} />
-                <Bar dataKey="value" fill="#2c9ae6" radius={[4, 4, 4, 4]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <EChart option={functionalityOption} height="100%" />
           </CardContent>
         </Card>
       </section>

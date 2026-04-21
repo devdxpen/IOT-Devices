@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
+import type { ApexOptions } from "@/components/charts/apex-chart";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
 
 export function HomeAnalyticsSection() {

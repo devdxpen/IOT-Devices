@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ApexOptions } from "apexcharts";
 import Link from "next/link";
 import {
   IoBusinessOutline,
@@ -11,6 +10,7 @@ import {
   IoTrendingUpOutline,
 } from "react-icons/io5";
 import { KpiGrid } from "@/components/cards/kpi-grid";
+import type { ApexOptions } from "@/components/charts/apex-chart";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";
 import {

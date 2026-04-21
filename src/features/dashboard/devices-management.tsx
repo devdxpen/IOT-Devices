@@ -404,7 +404,7 @@ export function DevicesManagement() {
       </div>
       <AddDeviceModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setIsModalOpen(false)} 
       />
     </div>
   );

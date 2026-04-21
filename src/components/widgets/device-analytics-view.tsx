@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ApexOptions } from "apexcharts";
 import { ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
   IoAlarmOutline,
@@ -11,6 +10,7 @@ import {
 } from "react-icons/io5";
 import type { IconType } from "react-icons/lib";
 import { ApexChart } from "@/components/charts/apex-chart";
+import type { ApexOptions } from "@/components/charts/apex-chart";
 import { AnalyticsChartCard } from "@/components/charts/chart-card";
 import { AnalyticsShell } from "@/components/layout/analytics-shell";
 import {
