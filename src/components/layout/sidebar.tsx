@@ -437,7 +437,7 @@ function CustomerSidebar({
                 <div className="space-y-1">
                   {items.map((item) => (
                     <CustomerNavLink
-                      key={item.href}
+                      key={`${name}-${item.label}`}
                       item={item}
                       role={role}
                       isActive={

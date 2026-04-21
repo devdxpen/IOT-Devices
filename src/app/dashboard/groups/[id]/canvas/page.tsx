@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactFlowProvider } from "@xyflow/react";
 import { useParams } from "next/navigation";
 import { CanvasEditor } from "@/features/canvas/CanvasEditor";
 
@@ -27,9 +28,10 @@ export default function GroupCanvasPage() {
       </header>
 
       <main className="flex-1 min-h-0">
-        <CanvasEditor />
+        <ReactFlowProvider>
+          <CanvasEditor />
+        </ReactFlowProvider>
       </main>
     </div>
   );
 }
-

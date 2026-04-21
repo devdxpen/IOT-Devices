@@ -1,24 +1,24 @@
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useUserPlan } from "@/contexts/UserPlanContext";
+import { cn } from "@/lib/utils";
 import {
   DeviceConfigProvider,
   useDeviceConfig,
 } from "../contexts/DeviceConfigContext";
+import { DeviceAlarmsTab } from "./tabs/device-alarms-tab";
 import { DeviceApiTab } from "./tabs/device-api-tab";
+import { DeviceBackupTab } from "./tabs/device-backup-tab";
+import { DeviceConnectionTab } from "./tabs/device-connection-tab";
 import { DeviceFirmwareTab } from "./tabs/device-firmware-tab";
+import { DeviceImportExportTab } from "./tabs/device-import-export-tab";
+import { DeviceLinkedAccountTab } from "./tabs/device-linked-account-tab";
 import { DeviceParametersTab } from "./tabs/device-parameters-tab";
 import { DeviceSetupTab } from "./tabs/device-setup-tab";
 import { DeviceTagsTab } from "./tabs/device-tags-tab";
-import { DeviceConnectionTab } from "./tabs/device-connection-tab";
-import { DeviceLinkedAccountTab } from "./tabs/device-linked-account-tab";
-import { DeviceAlarmsTab } from "./tabs/device-alarms-tab";
-import { DeviceImportExportTab } from "./tabs/device-import-export-tab";
-import { DeviceBackupTab } from "./tabs/device-backup-tab";
-import { cn } from "@/lib/utils";
-import { useUserPlan } from "@/contexts/UserPlanContext";
 
 interface DeviceEditTabsProps {
   deviceId: string;
@@ -34,9 +34,18 @@ export function DeviceEditTabs({ deviceId }: DeviceEditTabsProps) {
 
 function DeviceEditTabsInner({ deviceId }: DeviceEditTabsProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("setup");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(requestedTab || "setup");
   const { config, isLoading, saveAll, isSaving } = useDeviceConfig();
   const { plan, updatePlan } = useUserPlan();
+
+  useEffect(() => {
+    if (!requestedTab) {
+      return;
+    }
+    setActiveTab(requestedTab);
+  }, [requestedTab]);
 
   // If the plan changes to basic and the user is on a pro-only tab, revert to setup
   useEffect(() => {
@@ -83,14 +92,15 @@ function DeviceEditTabsInner({ deviceId }: DeviceEditTabsProps) {
     <div className="flex flex-col h-full space-y-4">
       {/* Header Area */}
       <div className="flex items-center justify-between">
-        <h1
-          className="text-xl font-semibold text-slate-800 flex items-center gap-2 cursor-pointer hover:text-slate-600 transition-colors"
+        <button
+          type="button"
+          className="flex items-center gap-2 text-xl font-semibold text-slate-800 transition-colors hover:text-slate-600"
           onClick={() => router.back()}
         >
           <ArrowLeft className="w-5 h-5" />
           Edit Device{" "}
           <span className="text-slate-500 font-normal">#{deviceId}</span>
-        </h1>
+        </button>
         <div className="flex items-center gap-3">
           <Button className="bg-[#1C2C4F] hover:bg-[#152240] text-white h-9 px-6 rounded-sm">
             Import Devices
@@ -99,6 +109,7 @@ function DeviceEditTabsInner({ deviceId }: DeviceEditTabsProps) {
           {/* Plan Toggle (Mocking Plan Switch) */}
           <div className="flex bg-slate-100 rounded-sm overflow-hidden p-0.5 border border-slate-200">
             <button
+              type="button"
               onClick={() => updatePlan("basic")}
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-sm transition-all outline-none",
@@ -110,6 +121,7 @@ function DeviceEditTabsInner({ deviceId }: DeviceEditTabsProps) {
               Basic
             </button>
             <button
+              type="button"
               onClick={() => updatePlan("pro")}
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-sm transition-all outline-none",
